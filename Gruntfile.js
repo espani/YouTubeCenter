@@ -1,12 +1,21 @@
 module.exports = function(grunt) {
+  var appConfig = grunt.file.readJSON("./config.json");
+  
+  
   grunt.initConfig({
     requirejs: {
-      compile: {
+      normal: {
         options: {
-          baseUrl: "./src",
-          name: "main",
-          optimize: "none",
-          out: "dist/ytcenter.js"
+          baseUrl: "./build",
+          name: "../vendor/almond",
+          optimize: "uglify2",
+          include: ["main"],
+          insertRequire: ["main"],
+          out: "./dist/ytcenter.js",
+          wrap: true,
+          generateSourceMaps: true,
+          preserveLicenseComments: false,
+          useSourceUrl: true
         }
       }
     },
@@ -33,31 +42,60 @@ module.exports = function(grunt) {
         ],
         dest: "dist/ytcenter.min.js"
       }
+    },
+    copy: {
+      all: {
+        files: [
+          { expand: true, cwd: "./src/", dest: "./build/", src: ["**/*.js"] }
+        ]
+      }
+    },
+    watch: {
+      scripts: {
+        files: ["./src/**/*.js"],
+        tasks: ["default"]
+      }
+    },
+    replace: {
+      userscript: {
+        options: {
+          patterns: [
+            {
+              match: /\$\{([0-9a-zA-Z.-_]+)\}/g,
+              replacement: function(match, $1){
+                if ($1 in appConfig) {
+                  return appConfig[$1];
+                } else {
+                  return "${" + $1 + "}";
+                }
+              }
+            }
+          ]
+        },
+        files: [
+          { expand: true, flatten: false, cwd: "./build/", src: "**/*.js", dest: "./build/" }
+        ]
+      }
+    },
+    clean: {
+      pre: ["./build/", "./dist/"],
+      after: ["./build/"]
     }
-  });
-  
-  grunt.registerTask("wrap", "Wraps files in an IIFE.", function() {
-    var path = "ytcenter.js";
-    var before = "(function() {\n";
-    var after = "\n})();";
-    var content = grunt.file.read(path);
-
-    grunt.file.write(path, before + content + after);
   });
   
   grunt.loadNpmTasks('grunt-contrib-requirejs');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-replace');
   
   grunt.registerTask("default", [
-    "requirejs",
-    "uglify:production",
-    "concat:production",
-    "wrap"
-  ]);
-  grunt.registerTask("dev", [
-    "requirejs",
-    "concat:dev",
-    "wrap"
+    "clean:pre",
+    "copy:all",
+    "replace:userscript",
+    "requirejs:normal",
+    "clean:after"
   ]);
 };

@@ -1,29 +1,29 @@
-define([], function(){
+define(["utils"], function(utils){
   function setEnabled(b) {
     enabled = b;
   }
   
   function log() {
-    if (!enabled) return;
-    return console.log.apply(console, Array.prototype.slice.call(arguments));
+    if (!enabled) return function(){};
+    return console.log.bind(console);
   }
   
   function error() {
-    if (!enabled) return;
-    return console.error.apply(console, Array.prototype.slice.call(arguments));
+    if (!enabled) return function(){};
+    return console.error.bind(console);
   }
   
   function warn() {
-    if (!enabled) return;
-    return console.warn.apply(console, Array.prototype.slice.call(arguments));
+    if (!enabled) return function(){};
+    return console.warn.bind(console);
   }
   
   var enabled = true;
   
-  return {
-    log: log,
-    error: error,
-    warn: warn,
-    setEnabled: setEnabled
-  };
+  var retObj = {};
+  utils.defineLockedProperty(retObj, "log", function(){}, log);
+  utils.defineLockedProperty(retObj, "error", function(){}, error);
+  utils.defineLockedProperty(retObj, "warn", function(){}, warn);
+  
+  return retObj;
 });
