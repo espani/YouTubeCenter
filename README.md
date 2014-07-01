@@ -16,10 +16,13 @@ YouTube Center uses [Grunt](http://gruntjs.com/) as the build system.
  * [Uglify](https://github.com/gruntjs/grunt-contrib-uglify) `npm install grunt-contrib-uglify --save-dev`
  * [Concat](https://github.com/gruntjs/grunt-contrib-concat) `npm install grunt-contrib-concat --save-dev`
  * [Copy](https://github.com/gruntjs/grunt-contrib-copy) `npm install grunt-contrib-copy --save-dev`
- * [Pattern Replace](https://github.com/nimaen/grunt-pattern-replace) `npm install grunt-pattern-replace --save-dev`
+ * [Watch](https://github.com/gruntjs/grunt-contrib-watch) `npm install grunt-contrib-watch --save-dev`
+ * [Clean](https://github.com/gruntjs/grunt-contrib-clean) `npm install grunt-contrib-clean --save-dev`
+ * [Replace](https://github.com/outaTiME/grunt-replace) `npm install grunt-replace --save-dev`
  
 ### Building
 `grunt dev`
+
 `grunt`
 
 ### output
