@@ -6,7 +6,7 @@ define(["windowReadyEvent", "player/listeners", "console", "storage", "unsafeWin
   onReady.addListener(function(api){
     con.log("Player is ready", api);
   });
-
+  con.log("YouTube Center settings", storage.getItem("${storage.settings}"));
   playerListener.setOverride("onStateChange", true);
   playerListener.addEventListener("onStateChange", function(state){
     con.log("State has been changed to " + state + ".");

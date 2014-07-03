@@ -1,16 +1,13 @@
-function inject(func) {
+function inject(func, settings) {
   var script = document.createElement("script"),
       p = (document.body || document.head || document.documentElement);
   if (!p) {
-    return;
+    throw "Could not inject YouTube Center!!!";
   }
   script.setAttribute("type", "text/javascript");
-  if (typeof func === "string") {
-    func = "function(){" + func + "}";
-  }
-  script.appendChild(document.createTextNode("(" + func + ")();"));
+  script.appendChild(document.createTextNode("(" + func + ")(" + JSON.stringify(settings) + ");"));
   p.appendChild(script);
-  //p.removeChild(script);
+  p.removeChild(script);
 }
 
 function isJSONString(json) {
@@ -57,4 +54,4 @@ function handleIncomingMessages(e) {
 window.addEventListener("message", handleIncomingMessages, false);
 
 
-inject(mainPage); /* mainPage is injected by Grunt */
+inject(mainPage, { tmp: 1 }); /* mainPage is injected by Grunt */

@@ -84,7 +84,7 @@ module.exports = function(grunt) {
   grunt.registerTask("wrapInFunction", "Wraps file into a function.", function() {
     var inPath = "./dist/main.page.min.js";
     var outPath = "./dist/main.page.named.min.js";
-    var before = "function mainPage() {\n";
+    var before = "function mainPage(globalSettings) {\n";
     var after = "\n}";
     var content = grunt.file.read(inPath);
 

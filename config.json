@@ -33,5 +33,7 @@
   "BROWSER.OPERA.NAME": "opera",
   "BROWSER.MAXTHON.NAME": "maxthon",
   
-  "runtime.browser": "-1"
+  "runtime.browser": "-1",
+  
+  "storage.settings": "YouTubeCenterSettings"
 }
