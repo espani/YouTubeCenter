@@ -3,9 +3,23 @@ define(["utils", "unsafeWindow", "console"], function(utils, uw, con){
     return config;
   }
   
-  function setConfig(cfg) {
-    con.log("[Player/Config] setConfig", cfg);
-    config = cfg;
+  function setConfig(cfg, val) {
+    if (typeof cfg === "string") {
+      var parts = cfg.split(".");
+      var cfg = config;
+      for (var i = 0, len = parts.length; i < len; i++) {
+        if (i === len - 1) {
+          cfg[parts[i]] = val;
+        } else {
+          if (!(parts[i] in cfg)) {
+            cfg[parts[i]] = {};
+          }
+          cfg = cfg[parts[i]];
+        }
+      }
+    } else {
+      config = cfg;
+    }
   }
   
   function configSetter(cfg) {
@@ -21,8 +35,23 @@ define(["utils", "unsafeWindow", "console"], function(utils, uw, con){
     return cfg;
   }
   
-  function setPersistentConfig(cfg) {
-    persistentConfig = cfg;
+  function setPersistentConfig(cfg, val) {
+    if (typeof cfg === "string") {
+      var parts = cfg.split(".");
+      var cfg = persistentConfig;
+      for (var i = 0, len = parts.length; i < len; i++) {
+        if (i === len - 1) {
+          cfg[parts[i]] = val;
+        } else {
+          if (!(parts[i] in cfg)) {
+            cfg[parts[i]] = {};
+          }
+          cfg = cfg[parts[i]];
+        }
+      }
+    } else {
+      persistentConfig = cfg;
+    }
   }
   
   function getPersistentConfig() {

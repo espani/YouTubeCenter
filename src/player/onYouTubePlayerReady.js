@@ -24,11 +24,7 @@ define(["unsafeWindow", "player/api", "player/config", "utils", "unsafeYouTubeCe
   
   var listeners = [];
   
-  var persistentConfig = config.getPersistentConfig();
-  persistentConfig.args = persistentConfig.args || {};
-  persistentConfig.args.jsapicallback = "ytcenter.player.onReady";
-  
-  
+  config.setPersistentConfig("args.jsapicallback", "ytcenter.player.onReady");
   uytc.player.onReady = utils.bind(this, onPlayerReady)
   
   return {
