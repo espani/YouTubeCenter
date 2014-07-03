@@ -1,4 +1,4 @@
-define(["storage/${browser}"], function(storageHandler){
+define(["storage/${runtime.browser.name}"], function(storageHandler){
   function setItem(key, value) {
     cache[key] = value;
     storageHandler.setItem(key, value);

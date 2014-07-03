@@ -1,4 +1,4 @@
-define(["utils", "player/api", "unsafeWindow", "console"], function(utils, playerAPI, uw, con){
+define(["utils", "player/api", "unsafeWindow", "console", "player/onYouTubePlayerReady"], function(utils, playerAPI, uw, con, onReady){
   // Get the YouTube listener for the passed event.
   function getYouTubeListener(event) {
     var ytEvent = "ytPlayer" + event + "player" + playerId;
@@ -251,6 +251,7 @@ define(["utils", "player/api", "unsafeWindow", "console"], function(utils, playe
     }
   };
   
+  onReady.addListener(init);
   
   return {
     addEventListener: addEventListener,
