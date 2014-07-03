@@ -3,7 +3,7 @@ module.exports = function(grunt) {
   
   grunt.initConfig({
     requirejs: {
-      normal: {
+      page: {
         options: {
           baseUrl: "./build",
           name: "../vendor/almond",
@@ -11,6 +11,20 @@ module.exports = function(grunt) {
           include: ["main.page"],
           insertRequire: ["main.page"],
           out: "./dist/main.page.min.js",
+          wrap: true,
+          preserveLicenseComments: false,
+          generateSourceMaps: true,
+          useSourceUrl: true
+        }
+      },
+      sandbox: {
+        options: {
+          baseUrl: "./build",
+          name: "../vendor/almond",
+          optimize: "uglify2",
+          include: ["main.sandbox"],
+          insertRequire: ["main.sandbox"],
+          out: "./dist/main.sandbox.min.js",
           wrap: true,
           preserveLicenseComments: false,
           generateSourceMaps: true,
@@ -70,7 +84,7 @@ module.exports = function(grunt) {
           "./dist/ytcenter.user.js": [
             "./build/main.userscript.meta.js",
             "./dist/main.page.named.min.js",
-            "./build/main.sandbox.js"
+            "./dist/main.sandbox.min.js"
           ]
         }
       }
@@ -109,6 +123,10 @@ module.exports = function(grunt) {
     grunt.task.run("page");
   });
   
+  grunt.registerTask("setupConfig:page", "Setting the correct variables", function() {
+    appConfig["runtime.browser"] = appConfig["BROWSER.INJECTED"];
+    appConfig["runtime.browser.name"] = appConfig["BROWSER.INJECTED.NAME"];
+  });
   grunt.registerTask("setupConfig:userscript", "Setting the correct variables", function() {
     appConfig["runtime.browser"] = appConfig["BROWSER.USERSCRIPT"];
     appConfig["runtime.browser.name"] = appConfig["BROWSER.USERSCRIPT.NAME"];
@@ -143,16 +161,19 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks("grunt-replace");
   
   grunt.registerTask("page", [
+    "setupConfig:page",
     "copy:all",
     "replace:config",
-    "requirejs:normal"
+    "requirejs:page"
   ]);
   
   grunt.registerTask("userscript", [
-    "setupConfig:userscript",
     "run:page",
+    "setupConfig:userscript",
+    "copy:all",
+    "replace:config",
     "wrapInFunction",
-    //"sourceMapToDataURI",
+    "requirejs:sandbox",
     "concat:userscript",
     "uglify:userscript",
     "clean:after"

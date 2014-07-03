@@ -16,7 +16,7 @@ define(["storage/${runtime.browser.name}"], function(storageHandler){
     return cache[key];
   }
   
-  var cache = { "${storage.settings}": globalSettings };
+  var cache = {};
   
   return {
     setItem: setItem,

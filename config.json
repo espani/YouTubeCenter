@@ -25,6 +25,7 @@
   "BROWSER.SAFARI": "3",
   "BROWSER.OPERA": "4",
   "BROWSER.MAXTHON": "5",
+  "BROWSER.INJECTED": "6",
   
   "BROWSER.USERSCRIPT.NAME": "userscript",
   "BROWSER.FIREFOX.NAME": "firefox",
@@ -32,6 +33,7 @@
   "BROWSER.SAFARI.NAME": "safari",
   "BROWSER.OPERA.NAME": "opera",
   "BROWSER.MAXTHON.NAME": "maxthon",
+  "BROWSER.INJECTED.NAME": "injected",
   
   "runtime.browser": "-1",
   

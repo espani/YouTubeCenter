@@ -5,17 +5,17 @@ define(["utils"], function(utils){
   
   function log() {
     if (!enabled) return function(){};
-    return console.log.bind(console);
+    return console.log.bind(console, "${runtime.browser.name}");
   }
   
   function error() {
     if (!enabled) return function(){};
-    return console.error.bind(console);
+    return console.error.bind(console, "${runtime.browser.name}");
   }
   
   function warn() {
     if (!enabled) return function(){};
-    return console.warn.bind(console);
+    return console.warn.bind(console, "${runtime.browser.name}");
   }
   
   var enabled = true;
