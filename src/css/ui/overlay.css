@@ -1,0 +1,11 @@
+.ytcenter-overlay {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  min-width: 970px;
+  border: none;
+  z-index: 2000000001;
+  background-color: #fff;
+  opacity: .8;
+  filter: alpha(opacity=80);
+}

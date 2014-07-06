@@ -92,6 +92,11 @@ module.exports = function(grunt) {
     clean: {
       pre: ["./build/", "./dist/"],
       after: ["./build/", "./dist/main.page.named.min.js"]
+    },
+    exec: {
+      language: {
+        cmd: "java -Dfile.encoding=UTF-8 -jar " + appConfig["language-bin"] + " " + appConfig["language-bin-key"] + " " + appConfig["language-json-file"]
+      }
     }
   });
   
@@ -103,6 +108,10 @@ module.exports = function(grunt) {
     var content = grunt.file.read(inPath);
 
     grunt.file.write(outPath, before + content + after);
+  });
+  
+  grunt.registerTask("loadLanguageFile", "Load the language.json file into the memory.", function() {
+    appConfig["language-locales"] = grunt.file.read(appConfig["language-json-file"]);
   });
   
   grunt.registerTask("sourceMapToDataURI", "Convert the sourcemap url to a data uri.", function() {
@@ -159,8 +168,10 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks("grunt-contrib-watch");
   grunt.loadNpmTasks("grunt-contrib-clean");
   grunt.loadNpmTasks("grunt-replace");
+  grunt.loadNpmTasks('grunt-exec');
   
   grunt.registerTask("page", [
+    "loadLanguageFile",
     "setupConfig:page",
     "copy:all",
     "replace:config",
@@ -177,5 +188,9 @@ module.exports = function(grunt) {
     "concat:userscript",
     "uglify:userscript",
     "clean:after"
+  ]);
+  
+  grunt.registerTask("language", [
+    "exec:language"
   ]);
 };

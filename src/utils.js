@@ -206,7 +206,9 @@ define(function(){
     }
     xmlhttp.send((typeof(details.data) != 'undefined') ? details.data : null);
   }
-
+  
+  // Used for the message module (should probably move to another place)
+  // It replaces a property in the obj to a predefined function, where the arguments will be callbackId, target, referer
   function bindFunctionCallbacks(obj, func, target, referer) {
     for (key in obj) {
       if (obj.hasOwnProperty(key)) {
@@ -222,6 +224,7 @@ define(function(){
     }
   }
   
+  // Merge two objects, where the override object will be overwritting the base object.
   function merge(base, override) {
     for (var key in override) {
       if (override.hasOwnProperty(key)) {

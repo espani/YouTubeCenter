@@ -37,5 +37,10 @@
   
   "runtime.browser": "-1",
   
+  "language-locales": "{}",
+  "language-bin": "./bin/LanguageDatabaseUpdater.jar",
+  "language-bin-key": "0AhHfBBHelFnAdF9fWHlVaHlGdUYteFNUUFVpeTIta2c",
+  "language-json-file": "./language.json",
+  
   "storage.settings": "YouTubeCenterSettings"
 }
