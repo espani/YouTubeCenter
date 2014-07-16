@@ -62,7 +62,7 @@ module.exports = function(grunt) {
         options: {
           patterns: [
             {
-              match: /\$\{([0-9a-zA-Z.-_]+)\}/g,
+              match: /\$\{([0-9a-zA-Z\.\-\_]+)\}/g,
               replacement: function(match, $1){
                 if ($1 in appConfig) {
                   return appConfig[$1];
@@ -112,20 +112,6 @@ module.exports = function(grunt) {
   
   grunt.registerTask("loadLanguageFile", "Load the language.json file into the memory.", function() {
     appConfig["language-locales"] = grunt.file.read(appConfig["language-json-file"]);
-  });
-  
-  grunt.registerTask("sourceMapToDataURI", "Convert the sourcemap url to a data uri.", function() {
-    var path = "./dist/main.page.named.min.js";
-    var mapPath = "./dist/main.page.min.js.map";
-    
-    var sourceMap = grunt.file.read(mapPath);
-    var dataURI = new Buffer(sourceMap).toString("base64");
-    var data = "data:application/json;base64," + dataURI;
-    
-    var content = grunt.file.read(path);
-    content = content.replace("main.page.min.js.map", data);
-
-    grunt.file.write(path, content);
   });
   
   grunt.registerTask("run:page", "Setting the correct variables", function() {

@@ -4,7 +4,7 @@ define(["utils"], function(utils){
   }
   
   function getItem(key) {
-    return getCookie(prefix + key);
+    return utils.getCookie(prefix + key);
   }
   
   function removeItem(key) {

@@ -1,3 +1,4 @@
+// TODO  Add easy function calling.
 define(["utils", "support", "storage", "url", "console"], function(utils, support, storage, url, con){
   function sendMessage(data) {
     data.referer = referer_;

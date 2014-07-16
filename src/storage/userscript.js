@@ -1,10 +1,10 @@
-define(["support", "storage/browser"], function(support, sBrowser){
+define(["support", "storage/browser", "utils"], function(support, sBrowser, utils){
   function setItem(key, value) {
     GM_setValue(key, value);
   }
   
-  function getItem(key) {
-    return GM_getValue(key);
+  function getItem(key, callback) {
+    utils.asyncCall(null, callback, GM_getValue(key));
   }
   
   function removeItem(key) {

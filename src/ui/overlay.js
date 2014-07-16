@@ -1,5 +1,5 @@
 define([], function(){
-  function createInstance() {
+  function createElement() {
     var overlay = document.createElement("div");
     overlay.setAttribute("id", "ytcenter-overlay");
     overlay.className = "ytcenter-overlay";
@@ -8,6 +8,6 @@ define([], function(){
   }
   
   return {
-    createInstance: createInstance
+    createElement: createElement
   };
 });

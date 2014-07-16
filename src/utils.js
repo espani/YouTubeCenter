@@ -17,6 +17,10 @@ define(function(){
     return Object.prototype.toString.call(arr) === "[object Array]";
   }
   
+  function asyncCall(scope, callback) {
+    return setTimeout(bind.apply(null, [scope, callback].concat(Array.prototype.slice.call(arguments, 2))), 0);
+  }
+  
   function bind(scope, func) {
     var args = Array.prototype.slice.call(arguments, 2);
     return function(){
@@ -31,7 +35,7 @@ define(function(){
   }
   function map(obj, callback, thisArg) {
     for (var i = 0, n = obj.length, a = []; i < n; i++) {
-        if (i in obj) a[i] = callback.call(thisArg, obj[i]);
+      if (i in obj) a[i] = callback.call(thisArg, obj[i]);
     }
     return a;
   }
@@ -242,10 +246,85 @@ define(function(){
     return base;
   }
   
+  function inArray(key, arr) {
+    for (var i = 0, len = arr.length; i < len; i++) {
+      if (arr[i] === key) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  function listClasses(el) {
+    return el.className.split(" ");
+  }
+  
+  function addClass(el, className) {
+    var classes = listClasses(el);
+    var addList = className.split(" ");
+    
+    for (var i = 0, len = addList.length; i < len; i++) {
+      if (!inArray(addList[i], classes)) {
+        el.className += " " + addList[i];
+      }
+    }
+    return el.className;
+  }
+  
+  function removeClass(el, className) {
+    var classes = listClasses(el);
+    var removeList = className.split(" ");
+    
+    var buffer = [];
+    for (var i = 0, len = classes.length; i < len; i++) {
+      if (!inArray(classes[i], removeList)) {
+        buffer.push(classes[i]);
+      }
+    }
+    return el.className = buffer.join(" ");
+  }
+  
+  function hasClass(el, className) {
+    return inArray(className, listClasses(el));
+  }
+  
+  function throttle(func, delay, options){
+    function timeout() {
+      previous = options.leading === false ? 0 : new Date;
+      timer = null;
+      result = func.apply(context, args);
+    }
+    var context, args, result, timer = null, previous = 0;
+    options = options || {};
+    return function(){
+      var now = new Date, dt;
+      
+      context = this;
+      args = arguments;
+      
+      if (!previous && options.leading === false) previous = now;
+      dt = delay - (now - previous);
+      
+      if (dt <= 0) {
+        clearTimeout(timer);
+        timer = null;
+        previous = now;
+        result = func.apply(context, args);
+      } else if (!timer && options.trailing !== false) {
+        timer = setTimeout(timeout, dt);
+      }
+      return result;
+    };
+  }
+  
   return {
+    hasClass: hasClass,
+    removeClass: removeClass,
+    addClass: addClass,
     each: each,
     isArray: isArray,
     bind: bind,
+    asyncCall: asyncCall,
     defineLockedProperty: defineLockedProperty,
     ie: ie,
     addEventListener: addEventListener,
@@ -263,6 +342,7 @@ define(function(){
     xhr: xhr,
     buildArgumentList: buildArgumentList,
     bindFunctionCallbacks: bindFunctionCallbacks,
-    merge: merge
+    merge: merge,
+    throttle: throttle
   };
 });

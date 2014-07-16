@@ -85,7 +85,7 @@ define(["utils"], function(utils){ // TODO  make it support token replacing.
   init();
   
   return {
-    setLanguage: setLanguag,
+    setLanguage: setLanguage,
     createTextNode: createTextNode,
     addLanguageListener: addLanguageListener,
     removeLanguageListener: removeLanguageListener,
