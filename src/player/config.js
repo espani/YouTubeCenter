@@ -24,14 +24,14 @@ define(["utils", "unsafeWindow", "console"], function(utils, uw, con){
   
   function configSetter(cfg) {
     setConfig(JSON.parse(JSON.stringify(cfg))); // Let's clone it
-    merge(cfg, persistentConfig);
+    utils.extend(persistentConfig, cfg, true);
   }
   
   function configGetter() {
     var cfg = getConfig();
     if (!cfg) return cfg;
     cfg = JSON.parse(JSON.stringify(cfg));
-    merge(cfg, persistentConfig);
+    utils.extend(persistentConfig, cfg, true);
     return cfg;
   }
   
@@ -56,21 +56,6 @@ define(["utils", "unsafeWindow", "console"], function(utils, uw, con){
   
   function getPersistentConfig() {
     return persistentConfig;
-  }
-  
-  function merge(cfg, persistent) {
-    utils.each(persistent, function(key, value){
-      if (typeof persistent === "object") {
-        if (!(key in cfg)) {
-          cfg[key] = JSON.parse(JSON.stringify(value));
-        } else {
-          merge(cfg[key], persistent[key]);
-        }
-      } else {
-        cfg[key] = value;
-      }
-    });
-    return cfg;
   }
   
   var config = {};

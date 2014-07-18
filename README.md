@@ -1,6 +1,6 @@
 YouTube Center
 ==============
-A very, very alpha version of a remake of YouTube Center.
+A very, very alpha version of a remake of YouTube Center. Do not expect it to work at the moment, but help is very welcome if you're up for it.
 
 
 Build
@@ -29,17 +29,29 @@ YouTube Center uses [Grunt](http://gruntjs.com/) as the build system.
 ### output
 ./ytcenter.js
 
+CONTRIBUTE
+----------
+To contribute to this remake project of YouTube Center you should do the following:
+ * Fork this branch.
+ * Install the requirements.
+ * Install the dependencies for the project.
+ * Do coding, fixing or something else that will progress the remake of YouTube Center. I will probably make a list of what should be done and how at some point in time.
+   If you're not certain on what to do you can just ask.
+    * Make sure that you document everything using [YUIDoc](http://yui.github.io/yuidoc/) with their [syntax](http://yui.github.io/yuidoc/syntax/index.html).
+ * Make a pull request and I will go through your code and then I will merge your pull request into this branch.
+
 TODO
 ----
+ * Document everything with [YUIDoc](http://yui.github.io/yuidoc/) [commenting syntax](http://yui.github.io/yuidoc/syntax/index.html) to make developing for YouTube Center easier for newcomers.
  * Implement every YouTube Center feature using requirejs (it's great, okay).
  * Add extension builder for Chrome, Firefox, Safari, Maxthon, Opera (and IE)
- * Add userscript support
  * Add method to download the translations into a JSON file.
  * Add styles.
  * Add API keys.
  * Add developer version.
  * Add configuration file for YouTube Center (downloadURL, firefoxTargetID, ...).
  * Add exclusive settings window for the extensions. To remove the need to visit YouTube to change settings.
+ * ...
 
 License
 -------

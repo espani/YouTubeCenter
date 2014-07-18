@@ -228,22 +228,19 @@ define(function(){
     }
   }
   
-  // Merge two objects, where the override object will be overwritting the base object.
-  function merge(base, override) {
-    for (var key in override) {
-      if (override.hasOwnProperty(key)) {
-        if (typeof override[key] === "object") {
-          if (typeof base[key] !== "object") {
-            base[key] = override[key];
-          } else {
-            base[key] = merge(base[key], override[key]);
-          }
-        } else {
-          base[key] = override[key];
+  function extend(obj, defaults, deep) {
+    if (typeof obj !== "object") throw new TypeError("Unsupported type for obj.");
+    if (typeof defaults !== "object") throw new TypeError("Unsupported type for defaults.");
+    for (var key in defaults) {
+      if (defaults.hasOwnProperty(key)) {
+        if (typeof obj[key] === "object" && typeof defaults[key] === "object" && deep) {
+          extend(obj[key], defaults[key], deep);
+        } else if (!obj.hasOwnProperty(key)) {
+          obj[key] = defaults[key];
         }
       }
     }
-    return base;
+    return obj;
   }
   
   function inArray(key, arr) {
@@ -317,12 +314,32 @@ define(function(){
     };
   }
   
+  function clone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  }
+  
+  function removeDuplicates(arr) {
+    var uniqueArr = [];
+    for (var i = 0, len = arr.length; i < len; i++) {
+      if (!inArray(uniqueArr, arr[i])) {
+        uniqueArr.push(arr[i]);
+      }
+    }
+    
+    return uniqueArr;
+  }
+  
+  function escapeRegExp(str) {
+    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+  }
+  
   return {
     hasClass: hasClass,
     removeClass: removeClass,
     addClass: addClass,
     each: each,
     isArray: isArray,
+    inArray: inArray,
     bind: bind,
     asyncCall: asyncCall,
     defineLockedProperty: defineLockedProperty,
@@ -342,7 +359,10 @@ define(function(){
     xhr: xhr,
     buildArgumentList: buildArgumentList,
     bindFunctionCallbacks: bindFunctionCallbacks,
-    merge: merge,
-    throttle: throttle
+    extend: extend,
+    throttle: throttle,
+    clone: clone,
+    removeDuplicates: removeDuplicates,
+    escapeRegExp: escapeRegExp
   };
 });
