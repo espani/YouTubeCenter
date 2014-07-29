@@ -1,36 +1,78 @@
-define([], function(){
+define(["unsafeWindow", "pageload"], function(uw, pageload){
+  function setEnabled(enabled) {
+    var spfEnabled = isEnabled();
+    if (enabled) {
+      if (!spfEnabled && uw && uw.spf && typeof uw.spf.init === "function") {
+        uw.spf.init();
+      }
+    } else {
+      if (spfEnabled && uw && uw.spf && typeof uw.spf.dispose === "function") {
+        uw.spf.dispose();
+      }
+    }
+  }
+  function isEnabled() {
+    return uw && uw._spf_state && uw._spf_state["history-init"];
+  }
+  
   function addEventListener(event, callback) {
-    throw "Not implemented yet!";
+    if (!attachedEvents[event]) attachedEvents[event] = [];
+    attachedEvents[event].push(callback);
   }
   
   function removeEventListener(event, callback) {
-    throw "Not implemented yet!";
+    if (!attachedEvents[event]) return;
+    for (var i = 0, len = attachedEvents[event].length; i < len; i++) {
+      if (attachedEvents[event][i] === callback) {
+        attachedEvents[event].splice(i, 1);
+        i--; len--;
+      }
+    }
   }
   
-  function isEnabled() {
-    return enabled;
+  function listener(event, e) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    con.log("[SPF] " + event, args);
+    var listeners = attachedEvents[event];
+    if (listeners) {
+      for (var i = 0, len = listeners.length; i < len; i++) {
+        listeners[i].call(this, e.detail);
+      }
+    }
   }
   
-  function setEnabled(b) {
-    enabled = b;
-    throw "Not impleneted yet!";
+  function init() {
+    for (var i = 0, len = spfEvents.length; i < len; i++) {
+      var boundListener = bind(null, listener, spfEvents[i]);
+      events.push(boundListener);
+      
+      document.addEventListener(customEventPrefix + spfEvents[i], boundListener, false);
+    }
   }
   
-  var eventSet = {
-    "error": "navigate-error-callback",
-    "part-processed": "navigate-part-processed-callback",
-    "part-received": "navigate-part-received-callback",
-    "processed": "navigate-processed-callback",
-    "received": "navigate-received-callback",
-    "requested": "navigate-requested-callback"
-  };
+  function dispose() {
+    if (events.length === spfEvents.length) {
+      for (var i = 0, len = spfEvents.length; i < len; i++) {
+        document.removeEventListener(customEventPrefix + spfEvents[i], events[i], false);
+      }
+      events = [];
+    }
+  }
   
-  var enabled = false;
+  var customEventPrefix = "spf";
+  var spfEvents = [ "error", "requested", "partreceived", "partprocessed", "received", "processed", "ready", "jsbeforeunload", "jsunload", "cssbeforeunload", "cssunload" ];
+  
+  var attachedEvents = { };
+  var events = [ ];
+  
+  init();
   
   return {
     addEventListener: addEventListener,
     removeEventListener: removeEventListener,
+    setEnabled: setEnabled,
     isEnabled: isEnabled,
-    setEnabled: setEnabled
+    init: init,
+    dispose: dispose
   };
 });

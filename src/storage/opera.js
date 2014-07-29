@@ -1,4 +1,4 @@
-define(["storage/browser.js"], function(sBrowser){
+define(["storage/browser.js"], function(browser){
   function messageListener(e) {
     
   }

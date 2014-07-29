@@ -4,8 +4,9 @@
   "id": "YouTubeCenter",
   "name": "YouTube Center",
   "namespace": "http://www.facebook.com/YouTubeCenter",
-  "author": "Jeppe Rune Mortensen <jepperm@gmail.com>",
-  "version": "2.1.1",
+  "author": "Jeppe Rune Mortensen",
+  "author-userscript": "Jeppe Rune Mortensen <jepperm@gmail.com>",
+  "version": "3.0.0",
   "description": "YouTube Center contains all kind of different useful functions which makes your visit on YouTube much more entertaining.",
   "iconURL": "https://raw.github.com/YePpHa/YouTubeCenter/master/assets/logo-48x48.png",
   "iconURL64": "https://raw.github.com/YePpHa/YouTubeCenter/master/assets/logo-64x64.png",
@@ -13,7 +14,7 @@
   
   "updateURL": "https://github.com/YePpHa/YouTubeCenter/raw/master/dist/YouTubeCenter.meta.js",
   "downloadURL": "https://github.com/YePpHa/YouTubeCenter/raw/master/dist/YouTubeCenter.user.js",
-  "updateVersion": "151",
+  "updateVersion": "1",
   
   "MESSAGE.TARGET.PAGE": "0",
   "MESSAGE.TARGET.SANDBOX": "1",
@@ -42,5 +43,27 @@
   "language-bin-key": "0AhHfBBHelFnAdF9fWHlVaHlGdUYteFNUUFVpeTIta2c",
   "language-json-file": "./language.json",
   
-  "storage.settings": "YouTubeCenterSettings"
+  "storage.settings": "YouTubeCenterSettings",
+  
+  "firefox.ID": "jid1-cwbvBTE216jjpg@jetpack",
+  "firefox.classDescription": "YouTube Center Policy Implementation",
+  "firefox.classID": "{338b51a4-0709-4971-ac89-18e82be90a93}",
+  "firefox.contractID": "@ytcenter/ytcenter-policy-service;1",
+  
+  "firefox.options": "http://www.youtube.com/#ytcenter.settings.open",
+  "firefox.options.type": "3",
+  
+  "firefox.target.firefox.id": "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}",
+  "firefox.target.firefox.min": "19.0",
+  "firefox.target.firefox.max": "32.*",
+  
+  "firefox.target.mobile.id": "{aa3c5121-dab2-40e2-81ca-7ea25febc110}",
+  "firefox.target.mobile.min": "19.0",
+  "firefox.target.mobile.max": "20.*",
+  
+  "firefox.target.seasmonkey.id": "{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}",
+  "firefox.target.seamonkey.min": "2.0",
+  "firefox.target.seamonkey.max": "2.31",
+  
+  "extension.dir.data": "data/"
 }

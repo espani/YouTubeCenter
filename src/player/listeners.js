@@ -1,26 +1,48 @@
 define(["utils", "player/api", "unsafeWindow", "console", "player/onYouTubePlayerReady"], function(utils, playerAPI, uw, con, onReady){
   // Get the YouTube listener for the passed event.
   function getYouTubeListener(event) {
-    var ytEvent = "ytPlayer" + event + "player" + playerId;
+    var ytEvent = getListenerName(event);
     return ytListeners[ytEvent];
   }
   
   // The latest player id registered in the global window.
-  function getNewestPlayerId() {
-    var id = 1, i;
+  function getPlayerListenerDetails() {
+    var id = 1;
+    var uid = null;
+    
     utils.each(uw, function(key, value){
       if (key.indexOf("ytPlayer") !== -1) {
-        i = parseInt(key.match(/player([0-9]+)$/)[1]);
-        if (i > id) {
-          id = i;
+        if (key.indexOf("player_uid_") !== -1) {
+          var uidMatch = key.match(/player_uid_([0-9]+)_([0-9]+)$/);
+          
+          uid = parseInt(uidMatch[1], 10);
+          i = parseInt(uidMatch[2], 10);
+          
+          if (i > id) {
+            id = i;
+          }
+        } else {
+          var idMatch = key.match(/player([0-9]+)$/);
+          i = parseInt(idMatch[1], 10);
+          if (i > id) {
+            id = i;
+          }
         }
       }
     });
-    return id;
+    return { id: id, uid: uid };
+  }
+  
+  function getListenerName(event) {
+    if (playerListenerDetails.uid !== null) {
+      return "ytPlayer" + event + "player_uid_" + playerListenerDetails.uid + "_" + playerListenerDetails.id;
+    } else {
+      return "ytPlayer" + event + "player" + playerListenerDetails.id;
+    }
   }
   
   function ytListenerContainerSetter(event, func) {
-    var ytEvent = "ytPlayer" + event + "player" + playerId;
+    var ytEvent = getListenerName(event);
     ytListeners[ytEvent] = func;
   }
   function ytListenerContainerGetter(event, func) {
@@ -38,7 +60,7 @@ define(["utils", "player/api", "unsafeWindow", "console", "player/onYouTubePlaye
       };
     }
     
-    var ytEvent = "ytPlayer" + event + "player" + playerId;
+    var ytEvent = getListenerName(event);
     var args = Array.prototype.slice.call(arguments, 2);
     var returnVal = null;
     
@@ -99,7 +121,7 @@ define(["utils", "player/api", "unsafeWindow", "console", "player/onYouTubePlaye
     globalListenersInitialized = true;
     for (var event in events) {
       if (events.hasOwnProperty(event)) {
-        var ytEvent = "ytPlayer" + event + "player" + playerId;
+        var ytEvent = getListenerName(event);
         if (uw[ytEvent]) {
           ytListeners[ytEvent] = uw[ytEvent];
         }
@@ -115,7 +137,7 @@ define(["utils", "player/api", "unsafeWindow", "console", "player/onYouTubePlaye
     if (enabled) return;
     con.log("[Player Listener] Has begun the init...");
     var api = playerAPI.getAPI();
-    playerId = getNewestPlayerId();
+    playerDetails = getPlayerListenerDetails();
     
     enabled = true; // Indicate that the it's active.
 
@@ -169,7 +191,7 @@ define(["utils", "player/api", "unsafeWindow", "console", "player/onYouTubePlaye
     apiNotAvailable = true;
   }
   
-  var playerId = 1;
+  var playerListenerDetails = { id: 1, uid: null };
   var ytListeners = {};
   var playerListener = {}; // Reference for unload
   var enabled = false;

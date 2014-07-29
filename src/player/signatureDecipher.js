@@ -1,4 +1,4 @@
-define(["player/config", "utils"], function(config, utils){
+define(["player/config", "utils", "xhr"], function(config, utils, request){
   function swapHeadAndPosition(arr, pos) {
     var head = arr[0];
     var other = arr[pos % arr.length];
@@ -43,10 +43,10 @@ define(["player/config", "utils"], function(config, utils){
       
       var regexCode = /function [a-zA-Z$0-9]+\(a\){a=a\.split\(""\);(.*?)return a\.join\(""\)}/g;
       var regexCodeFunctions = /a=([a-zA-Z0-9]+)\.([a-zA-Z0-9]+)\(a,([0-9]+)\)/g;
+      var regexCodeFunctions2 = /([a-zA-Z0-9]+)\.([a-zA-Z0-9]+)\(a,([0-9]+)\)/g;
       var regexParts = /function [a-zA-Z$0-9]+\(a\){a=a\.split\(""\);(((a=([a-zA-Z$0-9]+)\(a,([0-9]+)\);)|(a=a\.slice\([0-9]+\);)|(a=a\.reverse\(\);)|(var b=a\[0\];a\[0\]=a\[[0-9]+%a\.length\];a\[[0-9]+\]=b;)))*return a\.join\(""\)}/g;
-      
-      // xhr has not been implemented yet...
-      xhr({
+
+      request({
         method: "GET",
         url: url,
         onload: function(r) {
@@ -73,8 +73,14 @@ define(["player/config", "utils"], function(config, utils){
             }
           } else if (text.match(regexCode)) {
             var value = regexCode.exec(text)[1];
-            
+            var reg = regexCodeFunctions2;
+            var noReturn = true;
             if (value.match(regexCodeFunctions)) {
+              reg = regexCodeFunctions;
+              noReturn = false;
+            }
+            
+            if (value.match(reg)) {
               var commonObject = null;
               var functions = value.split(";");
               
@@ -82,7 +88,7 @@ define(["player/config", "utils"], function(config, utils){
               var methodValues = [];
               
               for (var i = 0, len = functions.length - 1; i < len; i++) {
-                var tokens = regexCodeFunctions.exec(functions[i]);
+                var tokens = reg.exec(functions[i]);
                 if (commonObject !== tokens[1] && commonObject !== null) {
                   throw "Unknown cipher method!";
                 } else {
@@ -108,9 +114,8 @@ define(["player/config", "utils"], function(config, utils){
               ytcenter.settings['signatureDecipher'] = [];
               
               for (var i = 0, len = uniqueMethods.length; i < len; i++) {
-                //var args = definedFunctions[i*2 + 1];
                 var func = definedFunctions[i*2 + 2];
-                decipherRecipe.push({ func: "function", name: uniqueMethods[i], value: func });
+                decipherRecipe.push({ func: "function", name: uniqueMethods[i], value: func + (noReturn ? ";return a;" : "") });
               }
               
               for (var i = 0, len = methods.length; i < len; i++) {

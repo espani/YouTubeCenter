@@ -3,8 +3,13 @@ define(["utils"], function(utils){
     utils.setCookie(prefix + key, value, null, "/", 1000*24*60*60*1000);
   }
   
-  function getItem(key) {
-    return utils.getCookie(prefix + key);
+  function getItem(key, callback, preferSync) {
+    var item = utils.getCookie(prefix + key);
+    if (preferSync) {
+      callback(item);
+    } else {
+      utils.asyncCall(null, callback, item);
+    }
   }
   
   function removeItem(key) {

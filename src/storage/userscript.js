@@ -1,10 +1,15 @@
-define(["support", "storage/browser", "utils"], function(support, sBrowser, utils){
+define(["support", "storage/browser", "utils"], function(support, browser, utils){
   function setItem(key, value) {
     GM_setValue(key, value);
   }
   
-  function getItem(key, callback) {
-    utils.asyncCall(null, callback, GM_getValue(key));
+  function getItem(key, callback, preferSync) {
+    var item = GM_getValue(key);
+    if (preferSync) {
+      callback(item);
+    } else {
+      utils.asyncCall(null, callback, item);
+    }
   }
   
   function removeItem(key) {
@@ -18,6 +23,6 @@ define(["support", "storage/browser", "utils"], function(support, sBrowser, util
       getItem: getItem
     };
   } else {
-    return sBrowser;
+    return browser;
   }
 });

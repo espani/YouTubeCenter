@@ -1,4 +1,4 @@
-define(function(){
+define(["support", "unsafeWindow"], function(support, uw){
   function each(obj, callback) {
     if (isArray(obj)) {
       for (var i = 0; i < obj.length; i++) {
@@ -253,6 +253,7 @@ define(function(){
   }
   
   function listClasses(el) {
+    if (!el || !el.className) return [];
     return el.className.split(" ");
   }
   
@@ -333,6 +334,104 @@ define(function(){
     return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
   }
   
+  function toBlob(bytes, contentType) {
+    contentType = contentType || "text/plain";
+    var sliceSize = 512;
+    
+    var bytesLength = bytes.length;
+    var slicesCount = Math.ceil(bytesLength / sliceSize);
+    
+    var byteArrays = new Array(slicesCount);
+    
+    for (var sliceIndex = 0; sliceIndex < slicesCount; ++sliceIndex) {
+      var begin = sliceIndex * sliceSize;
+      var end = Math.min(begin + sliceSize, bytesLength);
+      
+      var sliceBytes = new Array(end - begin);
+      for (var offset = begin, i = 0 ; offset < end; ++i, ++offset) {
+        sliceBytes[i] = bytes[offset].charCodeAt(0);
+      }
+      byteArrays[sliceIndex] = new Uint8Array(sliceBytes);
+    }
+    
+    return new Blob(byteArrays, { type: contentType });
+  }
+  
+  function createObjectURL(blob) {
+    if (support.createObjectURL) {
+      if (support.webkitURL) {
+        return uw.webkitURL.createObjectURL(blob);
+      } else {
+        return uw.URL.createObjectURL(blob);
+      }
+    } else {
+      throw "createObjectURL is not supported by the browser!";
+    }
+  }
+  
+  function revokeObjectURL(url) {
+    if (support.revokeObjectURL) {
+      if (support.webkitURL) {
+        return uw.webkitURL.revokeObjectURL(url);
+      } else {
+        return uw.URL.revokeObjectURL(url);
+      }
+    } else {
+      throw "revokeObjectURL is not supported by the browser!";
+    }
+  }
+  
+  // Returns a random number between min and max
+  function getRandomArbitrary(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+  
+  // Returns a random integer between min (included) and max (excluded)
+  function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+  }
+  
+  // Returns a random string of characters of chars with the length of length
+  function generateToken(chars, length) {
+    if (typeof chars !== "string") chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
+    if (typeof length !== "number") length = 64;
+    
+    var charsLength = chars.length;
+    
+    var token = "";
+    for (var i = 0; i < length; i++) {
+      token += chars[getRandomInt(0, charsLength)];
+    }
+    
+    return token;
+  }
+  
+  function escapeECMAVariable(key, defaultKey) {
+    key = key.replace(/[^0-9a-zA-Z_\$]/g, "");
+    while (/$[0-9]/g.test(key) && key.length > 0) {
+      if (key === "") return defaultKey;
+      key = key.substring(1);
+    }
+    return key;
+  }
+  
+  function indexOfArray(value, arr) {
+    for (var i = 0, len = arr.length; i < len; i++) {
+      if (arr[i] === value) {
+        return i;
+      }
+    }
+    return -1;
+  }
+  
+  function getKeys(obj) {
+    var keys = [];
+    each(obj, function(key){
+      keys.push(key);
+    });
+    return keys;
+  }
+  
   return {
     hasClass: hasClass,
     removeClass: removeClass,
@@ -363,6 +462,15 @@ define(function(){
     throttle: throttle,
     clone: clone,
     removeDuplicates: removeDuplicates,
-    escapeRegExp: escapeRegExp
+    escapeRegExp: escapeRegExp,
+    toBlob: toBlob,
+    createObjectURL: createObjectURL,
+    revokeObjectURL: revokeObjectURL,
+    getRandomArbitrary: getRandomArbitrary,
+    getRandomInt: getRandomInt,
+    generateToken: generateToken,
+    escapeECMAVariable: escapeECMAVariable,
+    indexOfArray: indexOfArray,
+    getKeys: getKeys
   };
 });

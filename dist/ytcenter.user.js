@@ -2,12 +2,12 @@
 // @id              YouTubeCenter
 // @name            YouTube Center
 // @namespace       http://www.facebook.com/YouTubeCenter
-// @version         2.1.1
+// @version         3.0.0
 // @author          Jeppe Rune Mortensen <jepperm@gmail.com>
 // @description     YouTube Center contains all kind of different useful functions which makes your visit on YouTube much more entertaining.
 // @icon            https://raw.github.com/YePpHa/YouTubeCenter/master/assets/logo-48x48.png
 // @icon64          https://raw.github.com/YePpHa/YouTubeCenter/master/assets/logo-64x64.png
-// @domain          userscripts.org
+// @domain          yeppha.github.io
 // @domain          youtube.com
 // @domain          www.youtube.com
 // @domain          gdata.youtube.com
@@ -19,7 +19,7 @@
 // @domain          s.ytimg.com
 // @match           http://*.youtube.com/*
 // @match           https://*.youtube.com/*
-// @match           http://userscripts.org/scripts/source/114002.meta.js
+// @match           https://yeppha.github.io/downloads/YouTubeCenter.meta.js
 // @match           http://s.ytimg.com/yts/jsbin/*
 // @match           https://s.ytimg.com/yts/jsbin/*
 // @match           https://raw.github.com/YePpHa/YouTubeCenter/master/*
@@ -39,24 +39,3038 @@
 // @exclude         https://*.youtube.com/subscribe_embed?*
 // @grant           GM_getValue
 // @grant           GM_setValue
+// @grant           GM_deleteValue
 // @grant           GM_xmlhttpRequest
 // @grant           GM_log
 // @grant           GM_registerMenuCommand
 // @grant           unsafeWindow
 // @updateURL       https://github.com/YePpHa/YouTubeCenter/raw/master/dist/YouTubeCenter.meta.js
 // @downloadURL     https://github.com/YePpHa/YouTubeCenter/raw/master/dist/YouTubeCenter.user.js
-// @updateVersion   151
+// @updateVersion   1
 // @run-at          document-start
 // @priority        9001
 // @contributionURL https://github.com/YePpHa/YouTubeCenter/wiki/Donate
 // ==/UserScript==
 
 
-function mainPage(globalSettings) {
-!function(){eval("/**\n * @license almond 0.2.9 Copyright (c) 2011-2014, The Dojo Foundation All Rights Reserved.\n * Available via the MIT or new BSD license.\n * see: http://github.com/jrburke/almond for details\n */\n//Going sloppy to avoid 'use strict' string cost, but strict practices should\n//be followed.\n/*jslint sloppy: true */\n/*global setTimeout: false */\n\nvar requirejs, require, define;\n(function (undef) {\n    var main, req, makeMap, handlers,\n        defined = {},\n        waiting = {},\n        config = {},\n        defining = {},\n        hasOwn = Object.prototype.hasOwnProperty,\n        aps = [].slice,\n        jsSuffixRegExp = /\\.js$/;\n\n    function hasProp(obj, prop) {\n        return hasOwn.call(obj, prop);\n    }\n\n    /**\n     * Given a relative module name, like ./something, normalize it to\n     * a real name that can be mapped to a path.\n     * @param {String} name the relative name\n     * @param {String} baseName a real name that the name arg is relative\n     * to.\n     * @returns {String} normalized name\n     */\n    function normalize(name, baseName) {\n        var nameParts, nameSegment, mapValue, foundMap, lastIndex,\n            foundI, foundStarMap, starI, i, j, part,\n            baseParts = baseName && baseName.split(\"/\"),\n            map = config.map,\n            starMap = (map && map['*']) || {};\n\n        //Adjust any relative paths.\n        if (name && name.charAt(0) === \".\") {\n            //If have a base name, try to normalize against it,\n            //otherwise, assume it is a top-level require that will\n            //be relative to baseUrl in the end.\n            if (baseName) {\n                //Convert baseName to array, and lop off the last part,\n                //so that . matches that \"directory\" and not name of the baseName's\n                //module. For instance, baseName of \"one/two/three\", maps to\n                //\"one/two/three.js\", but we want the directory, \"one/two\" for\n                //this normalization.\n                baseParts = baseParts.slice(0, baseParts.length - 1);\n                name = name.split('/');\n                lastIndex = name.length - 1;\n\n                // Node .js allowance:\n                if (config.nodeIdCompat && jsSuffixRegExp.test(name[lastIndex])) {\n                    name[lastIndex] = name[lastIndex].replace(jsSuffixRegExp, '');\n                }\n\n                name = baseParts.concat(name);\n\n                //start trimDots\n                for (i = 0; i < name.length; i += 1) {\n                    part = name[i];\n                    if (part === \".\") {\n                        name.splice(i, 1);\n                        i -= 1;\n                    } else if (part === \"..\") {\n                        if (i === 1 && (name[2] === '..' || name[0] === '..')) {\n                            //End of the line. Keep at least one non-dot\n                            //path segment at the front so it can be mapped\n                            //correctly to disk. Otherwise, there is likely\n                            //no path mapping for a path starting with '..'.\n                            //This can still fail, but catches the most reasonable\n                            //uses of ..\n                            break;\n                        } else if (i > 0) {\n                            name.splice(i - 1, 2);\n                            i -= 2;\n                        }\n                    }\n                }\n                //end trimDots\n\n                name = name.join(\"/\");\n            } else if (name.indexOf('./') === 0) {\n                // No baseName, so this is ID is resolved relative\n                // to baseUrl, pull off the leading dot.\n                name = name.substring(2);\n            }\n        }\n\n        //Apply map config if available.\n        if ((baseParts || starMap) && map) {\n            nameParts = name.split('/');\n\n            for (i = nameParts.length; i > 0; i -= 1) {\n                nameSegment = nameParts.slice(0, i).join(\"/\");\n\n                if (baseParts) {\n                    //Find the longest baseName segment match in the config.\n                    //So, do joins on the biggest to smallest lengths of baseParts.\n                    for (j = baseParts.length; j > 0; j -= 1) {\n                        mapValue = map[baseParts.slice(0, j).join('/')];\n\n                        //baseName segment has  config, find if it has one for\n                        //this name.\n                        if (mapValue) {\n                            mapValue = mapValue[nameSegment];\n                            if (mapValue) {\n                                //Match, update name to the new value.\n                                foundMap = mapValue;\n                                foundI = i;\n                                break;\n                            }\n                        }\n                    }\n                }\n\n                if (foundMap) {\n                    break;\n                }\n\n                //Check for a star map match, but just hold on to it,\n                //if there is a shorter segment match later in a matching\n                //config, then favor over this star map.\n                if (!foundStarMap && starMap && starMap[nameSegment]) {\n                    foundStarMap = starMap[nameSegment];\n                    starI = i;\n                }\n            }\n\n            if (!foundMap && foundStarMap) {\n                foundMap = foundStarMap;\n                foundI = starI;\n            }\n\n            if (foundMap) {\n                nameParts.splice(0, foundI, foundMap);\n                name = nameParts.join('/');\n            }\n        }\n\n        return name;\n    }\n\n    function makeRequire(relName, forceSync) {\n        return function () {\n            //A version of a require function that passes a moduleName\n            //value for items that may need to\n            //look up paths relative to the moduleName\n            return req.apply(undef, aps.call(arguments, 0).concat([relName, forceSync]));\n        };\n    }\n\n    function makeNormalize(relName) {\n        return function (name) {\n            return normalize(name, relName);\n        };\n    }\n\n    function makeLoad(depName) {\n        return function (value) {\n            defined[depName] = value;\n        };\n    }\n\n    function callDep(name) {\n        if (hasProp(waiting, name)) {\n            var args = waiting[name];\n            delete waiting[name];\n            defining[name] = true;\n            main.apply(undef, args);\n        }\n\n        if (!hasProp(defined, name) && !hasProp(defining, name)) {\n            throw new Error('No ' + name);\n        }\n        return defined[name];\n    }\n\n    //Turns a plugin!resource to [plugin, resource]\n    //with the plugin being undefined if the name\n    //did not have a plugin prefix.\n    function splitPrefix(name) {\n        var prefix,\n            index = name ? name.indexOf('!') : -1;\n        if (index > -1) {\n            prefix = name.substring(0, index);\n            name = name.substring(index + 1, name.length);\n        }\n        return [prefix, name];\n    }\n\n    /**\n     * Makes a name map, normalizing the name, and using a plugin\n     * for normalization if necessary. Grabs a ref to plugin\n     * too, as an optimization.\n     */\n    makeMap = function (name, relName) {\n        var plugin,\n            parts = splitPrefix(name),\n            prefix = parts[0];\n\n        name = parts[1];\n\n        if (prefix) {\n            prefix = normalize(prefix, relName);\n            plugin = callDep(prefix);\n        }\n\n        //Normalize according\n        if (prefix) {\n            if (plugin && plugin.normalize) {\n                name = plugin.normalize(name, makeNormalize(relName));\n            } else {\n                name = normalize(name, relName);\n            }\n        } else {\n            name = normalize(name, relName);\n            parts = splitPrefix(name);\n            prefix = parts[0];\n            name = parts[1];\n            if (prefix) {\n                plugin = callDep(prefix);\n            }\n        }\n\n        //Using ridiculous property names for space reasons\n        return {\n            f: prefix ? prefix + '!' + name : name, //fullName\n            n: name,\n            pr: prefix,\n            p: plugin\n        };\n    };\n\n    function makeConfig(name) {\n        return function () {\n            return (config && config.config && config.config[name]) || {};\n        };\n    }\n\n    handlers = {\n        require: function (name) {\n            return makeRequire(name);\n        },\n        exports: function (name) {\n            var e = defined[name];\n            if (typeof e !== 'undefined') {\n                return e;\n            } else {\n                return (defined[name] = {});\n            }\n        },\n        module: function (name) {\n            return {\n                id: name,\n                uri: '',\n                exports: defined[name],\n                config: makeConfig(name)\n            };\n        }\n    };\n\n    main = function (name, deps, callback, relName) {\n        var cjsModule, depName, ret, map, i,\n            args = [],\n            callbackType = typeof callback,\n            usingExports;\n\n        //Use name if no relName\n        relName = relName || name;\n\n        //Call the callback to define the module, if necessary.\n        if (callbackType === 'undefined' || callbackType === 'function') {\n            //Pull out the defined dependencies and pass the ordered\n            //values to the callback.\n            //Default to [require, exports, module] if no deps\n            deps = !deps.length && callback.length ? ['require', 'exports', 'module'] : deps;\n            for (i = 0; i < deps.length; i += 1) {\n                map = makeMap(deps[i], relName);\n                depName = map.f;\n\n                //Fast path CommonJS standard dependencies.\n                if (depName === \"require\") {\n                    args[i] = handlers.require(name);\n                } else if (depName === \"exports\") {\n                    //CommonJS module spec 1.1\n                    args[i] = handlers.exports(name);\n                    usingExports = true;\n                } else if (depName === \"module\") {\n                    //CommonJS module spec 1.1\n                    cjsModule = args[i] = handlers.module(name);\n                } else if (hasProp(defined, depName) ||\n                           hasProp(waiting, depName) ||\n                           hasProp(defining, depName)) {\n                    args[i] = callDep(depName);\n                } else if (map.p) {\n                    map.p.load(map.n, makeRequire(relName, true), makeLoad(depName), {});\n                    args[i] = defined[depName];\n                } else {\n                    throw new Error(name + ' missing ' + depName);\n                }\n            }\n\n            ret = callback ? callback.apply(defined[name], args) : undefined;\n\n            if (name) {\n                //If setting exports via \"module\" is in play,\n                //favor that over return value and exports. After that,\n                //favor a non-undefined return value over exports use.\n                if (cjsModule && cjsModule.exports !== undef &&\n                        cjsModule.exports !== defined[name]) {\n                    defined[name] = cjsModule.exports;\n                } else if (ret !== undef || !usingExports) {\n                    //Use the return value from the function.\n                    defined[name] = ret;\n                }\n            }\n        } else if (name) {\n            //May just be an object definition for the module. Only\n            //worry about defining if have a module name.\n            defined[name] = callback;\n        }\n    };\n\n    requirejs = require = req = function (deps, callback, relName, forceSync, alt) {\n        if (typeof deps === \"string\") {\n            if (handlers[deps]) {\n                //callback in this case is really relName\n                return handlers[deps](callback);\n            }\n            //Just return the module wanted. In this scenario, the\n            //deps arg is the module name, and second arg (if passed)\n            //is just the relName.\n            //Normalize module name, if it contains . or ..\n            return callDep(makeMap(deps, callback).f);\n        } else if (!deps.splice) {\n            //deps is a config object, not an array.\n            config = deps;\n            if (config.deps) {\n                req(config.deps, config.callback);\n            }\n            if (!callback) {\n                return;\n            }\n\n            if (callback.splice) {\n                //callback is an array, which means it is a dependency list.\n                //Adjust args if there are dependencies\n                deps = callback;\n                callback = relName;\n                relName = null;\n            } else {\n                deps = undef;\n            }\n        }\n\n        //Support require(['a'])\n        callback = callback || function () {};\n\n        //If relName is a function, it is an errback handler,\n        //so remove it.\n        if (typeof relName === 'function') {\n            relName = forceSync;\n            forceSync = alt;\n        }\n\n        //Simulate async callback;\n        if (forceSync) {\n            main(undef, deps, callback, relName);\n        } else {\n            //Using a non-zero value because of concern for what old browsers\n            //do, and latest browsers \"upgrade\" to 4 if lower value is used:\n            //http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#dom-windowtimers-settimeout:\n            //If want a value immediately, use require('id') instead -- something\n            //that works in almond on the global level, but not guaranteed and\n            //unlikely to work in other AMD implementations.\n            setTimeout(function () {\n                main(undef, deps, callback, relName);\n            }, 4);\n        }\n\n        return req;\n    };\n\n    /**\n     * Just drops the config on the floor, but returns req in case\n     * the config return value is used.\n     */\n    req.config = function (cfg) {\n        return req(cfg);\n    };\n\n    /**\n     * Expose module registry for debugging and tooling\n     */\n    requirejs._defined = defined;\n\n    define = function (name, deps, callback) {\n\n        //This module may not have dependencies\n        if (!deps.splice) {\n            //deps is not an array, so probably means\n            //an object literal or factory function for\n            //the value. Adjust args.\n            callback = deps;\n            deps = [];\n        }\n\n        if (!hasProp(defined, name) && !hasProp(waiting, name)) {\n            waiting[name] = [name, deps, callback];\n        }\n    };\n\n    define.amd = {\n        jQuery: true\n    };\n}());\n\n//# sourceURL=/../vendor/almond.js"),define("../vendor/almond",function(){}),eval('define(\'utils\',[],function(){\r\n  function each(obj, callback) {\r\n    if (isArray(obj)) {\r\n      for (var i = 0; i < obj.length; i++) {\r\n        if (callback(i, obj[i]) === true) break;\r\n      }\r\n    } else {\r\n      for (var key in obj) {\r\n        if (obj.hasOwnProperty(key)) {\r\n          if (callback(key, obj[key]) === true) break;\r\n        }\r\n      }\r\n    }\r\n  }\r\n  \r\n  function isArray(arr) {\r\n    return Object.prototype.toString.call(arr) === "[object Array]";\r\n  }\r\n  \r\n  function asyncCall(scope, callback) {\r\n    return setTimeout(bind.apply(null, [scope, callback].concat(Array.prototype.slice.call(arguments, 2))), 0);\r\n  }\r\n  \r\n  function bind(scope, func) {\r\n    var args = Array.prototype.slice.call(arguments, 2);\r\n    return function(){\r\n      return func.apply(scope, args.concat(Array.prototype.slice.call(arguments)))\r\n    };\r\n  }\r\n  function trimLeft(obj){\r\n    return obj.replace(/^\\s+/, "");\r\n  }\r\n  function trimRight(obj){\r\n    return obj.replace(/\\s+$/, "");\r\n  }\r\n  function map(obj, callback, thisArg) {\r\n    for (var i = 0, n = obj.length, a = []; i < n; i++) {\r\n      if (i in obj) a[i] = callback.call(thisArg, obj[i]);\r\n    }\r\n    return a;\r\n  }\r\n  \r\n  function defineLockedProperty(obj, key, setter, getter) {\r\n    if (typeof obj !== "object") obj = {};\r\n    if (ie || typeof Object.defineProperty === "function") {\r\n      Object.defineProperty(obj, key, {\r\n        get: getter,\r\n        set: setter\r\n      });\r\n      return obj;\r\n    } else {\r\n      obj.__defineGetter__(key, getter);\r\n      obj.__defineSetter__(key, setter);\r\n      return obj;\r\n    }\r\n  }\r\n  \r\n  function addEventListener(elm, event, callback, useCapture) {\r\n    if (elm.addEventListener) {\r\n      elm.addEventListener(event, callback, useCapture || false);\r\n    } else if (elm.attachEvent) {\r\n      elm.attachEvent("on" + event, callback);\r\n    }\r\n  }\r\n  \r\n  function removeEventListener(elm, event, callback, useCapture) {\r\n    if (elm.removeEventListener) {\r\n      elm.removeEventListener(event, callback, useCapture || false);\r\n    } else if (elm.detachEvent) {\r\n      elm.detachEvent("on" + event, callback);\r\n    }\r\n  }\r\n  \r\n  var ie = (function(){\r\n    for (var v = 3, el = document.createElement(\'b\'), all = el.all || []; el.innerHTML = \'<!--[if gt IE \' + (++v) + \']><i><![endif]-->\', all[0];);\r\n    return v > 4 ? v : !!document.documentMode;\r\n  }());\r\n  \r\n  var now = Date.now || function () {\r\n    return +new Date;\r\n  };\r\n  \r\n  /* Cookies */\r\n  function setCookie(name, value, domain, path, expires) {\r\n    domain = domain ? ";domain=" + encodeURIComponent(domain) : "";\r\n    path = path ? ";path=" + encodeURIComponent(path) : "";\r\n    expires = 0 > expires ? "" : 0 == expires ? ";expires=" + (new Date(1970, 1, 1)).toUTCString() : ";expires=" + (new Date(now() + 1E3 * expires)).toUTCString();\r\n    \r\n    document.cookie = encodeURIComponent(name) + "=" + encodeURIComponent(value) + domain + path + expires;\r\n  }\r\n  \r\n  function getCookie(key) {\r\n    return getCookies()[key];\r\n  }\r\n  \r\n  function getCookies() {\r\n    var c = document.cookie, v = 0, cookies = {};\r\n    if (document.cookie.match(/^\\s*\\$Version=(?:"1"|1);\\s*(.*)/)) {\r\n      c = RegExp.$1;\r\n      v = 1;\r\n    }\r\n    if (v === 0) {\r\n      map(c.split(/[,;]/), function(cookie) {\r\n        var parts = cookie.split(/=/, 2),\r\n            name = decodeURIComponent(trimLeft(parts[0])),\r\n            value = parts.length > 1 ? decodeURIComponent(trimRight(parts[1])) : null;\r\n        cookies[name] = value;\r\n      });\r\n    } else {\r\n      map(c.match(/(?:^|\\s+)([!#$%&\'*+\\-.0-9A-Z^`a-z|~]+)=([!#$%&\'*+\\-.0-9A-Z^`a-z|~]*|"(?:[\\x20-\\x7E\\x80\\xFF]|\\\\[\\x00-\\x7F])*")(?=\\s*[,;]|$)/g), function($0, $1) {\r\n        var name = $0, value = $1.charAt(0) === \'"\' ? $1.substr(1, -1).replace(/\\\\(.)/g, "$1") : $1;\r\n        cookies[name] = value;\r\n      });\r\n    }\r\n    return cookies;\r\n  }\r\n  \r\n  function endsWith(str, suffix) {\r\n    return str.indexOf(suffix, str.length - suffix.length) !== -1;\r\n  }\r\n  \r\n  function inject(func) {\r\n    var script = document.createElement("script"),\r\n        p = (document.body || document.head || document.documentElement);\r\n    if (!p) {\r\n      throw "Could not inject!!!";\r\n    }\r\n    script.setAttribute("type", "text/javascript");\r\n    script.appendChild(document.createTextNode("(" + func + ")(" + buildArgumentList.apply(null, [false].concat(Array.prototype.slice.call(arguments, 1))) + ");"));\r\n    p.appendChild(script);\r\n    p.removeChild(script);\r\n  }\r\n  \r\n  function buildArgumentList(wrap) {\r\n    var list = [];\r\n    var args = Array.prototype.slice.call(arguments, 1);\r\n    \r\n    for (var i = 0, len = args.length; i < len; i++) {\r\n      if (typeof args[i] === "string") {\r\n        list.push("\\"" + args[i].replace(/\\\\/, "\\\\\\\\").replace(/"/g, "\\\\\\"") + "\\"");\r\n      } else if (typeof args[i] === "object") {\r\n        list.push(JSON.stringify(args[i]));\r\n      } else {\r\n        list.push(args[i]);\r\n      }\r\n    }\r\n    if (wrap) {\r\n      return "(" + list.join(",") + ")";\r\n    } else {\r\n      return list.join(",");\r\n    }\r\n  }\r\n  \r\n  function isJSONString(json) {\r\n    try {\r\n      JSON.parse(json);\r\n    } catch (e) {\r\n      return false;\r\n    }\r\n    return true;\r\n  }\r\n  \r\n  function xhr(details) {\r\n    var xmlhttp;\r\n    if (typeof XMLHttpRequest !== "undefined") {\r\n      xmlhttp = new XMLHttpRequest();\r\n    } else if (typeof opera !== "undefined" && typeof opera.XMLHttpRequest !== "undefined") {\r\n      xmlhttp = new opera.XMLHttpRequest();\r\n    } else {\r\n      if (details["onerror"]) {\r\n        details["onerror"]();\r\n      }\r\n      \r\n      return;\r\n    }\r\n    xmlhttp.onreadystatechange = function(){\r\n      var responseState = {\r\n        responseXML:(xmlhttp.readyState == 4 ? xmlhttp.responseXML : \'\'),\r\n        responseText:(xmlhttp.readyState == 4 ? xmlhttp.responseText : \'\'),\r\n        readyState:xmlhttp.readyState,\r\n        responseHeaders:(xmlhttp.readyState == 4 ? xmlhttp.getAllResponseHeaders() : \'\'),\r\n        status:(xmlhttp.readyState == 4 ? xmlhttp.status : 0),\r\n        statusText:(xmlhttp.readyState == 4 ? xmlhttp.statusText : \'\'),\r\n        finalUrl:(xmlhttp.readyState == 4 ? xmlhttp.finalUrl : \'\')\r\n      };\r\n      if (details["onreadystatechange"]) {\r\n        details["onreadystatechange"](responseState);\r\n      }\r\n      if (xmlhttp.readyState == 4) {\r\n        if (details["onload"] && xmlhttp.status >= 200 && xmlhttp.status < 300) {\r\n          details["onload"](responseState);\r\n        }\r\n        if (details["onerror"] && (xmlhttp.status < 200 || xmlhttp.status >= 300)) {\r\n          details["onerror"](responseState);\r\n        }\r\n      }\r\n    };\r\n    try {\r\n      xmlhttp.open(details.method, details.url);\r\n    } catch(e) {\r\n      if(details["onerror"]) {\r\n        details["onerror"]({responseXML:\'\',responseText:\'\',readyState:4,responseHeaders:\'\',status:403,statusText:\'Forbidden\'});\r\n      }\r\n      return;\r\n    }\r\n    if (details.headers) {\r\n      for (var prop in details.headers) {\r\n        xmlhttp.setRequestHeader(prop, details.headers[prop]);\r\n      }\r\n    }\r\n    xmlhttp.send((typeof(details.data) != \'undefined\') ? details.data : null);\r\n  }\r\n  \r\n  // Used for the message module (should probably move to another place)\r\n  // It replaces a property in the obj to a predefined function, where the arguments will be callbackId, target, referer\r\n  function bindFunctionCallbacks(obj, func, target, referer) {\r\n    for (key in obj) {\r\n      if (obj.hasOwnProperty(key)) {\r\n        if (typeof obj[key] === "obj") {\r\n          bindFunctionCallbacks(obj[key]);\r\n        } else if (typeof obj[key] === "string") {\r\n          if (obj[key].indexOf("@/(message.callback)/") === 0) {\r\n            var callbackId = obj[key].split("@/(message.callback)/")[1];\r\n            obj[key] = bind(null, func, callbackId, target, referer);\r\n          }\r\n        }\r\n      }\r\n    }\r\n  }\r\n  \r\n  // Merge two objects, where the override object will be overwritting the base object.\r\n  function merge(base, override) {\r\n    for (var key in override) {\r\n      if (override.hasOwnProperty(key)) {\r\n        if (typeof override[key] === "object") {\r\n          if (typeof base[key] !== "object") {\r\n            base[key] = override[key];\r\n          } else {\r\n            base[key] = merge(base[key], override[key]);\r\n          }\r\n        } else {\r\n          base[key] = override[key];\r\n        }\r\n      }\r\n    }\r\n    return base;\r\n  }\r\n  \r\n  function inArray(key, arr) {\r\n    for (var i = 0, len = arr.length; i < len; i++) {\r\n      if (arr[i] === key) {\r\n        return true;\r\n      }\r\n    }\r\n    return false;\r\n  }\r\n  \r\n  function listClasses(el) {\r\n    return el.className.split(" ");\r\n  }\r\n  \r\n  function addClass(el, className) {\r\n    var classes = listClasses(el);\r\n    var addList = className.split(" ");\r\n    \r\n    for (var i = 0, len = addList.length; i < len; i++) {\r\n      if (!inArray(addList[i], classes)) {\r\n        el.className += " " + addList[i];\r\n      }\r\n    }\r\n    return el.className;\r\n  }\r\n  \r\n  function removeClass(el, className) {\r\n    var classes = listClasses(el);\r\n    var removeList = className.split(" ");\r\n    \r\n    var buffer = [];\r\n    for (var i = 0, len = classes.length; i < len; i++) {\r\n      if (!inArray(classes[i], removeList)) {\r\n        buffer.push(classes[i]);\r\n      }\r\n    }\r\n    return el.className = buffer.join(" ");\r\n  }\r\n  \r\n  function hasClass(el, className) {\r\n    return inArray(className, listClasses(el));\r\n  }\r\n  \r\n  function throttle(func, delay, options){\r\n    function timeout() {\r\n      previous = options.leading === false ? 0 : new Date;\r\n      timer = null;\r\n      result = func.apply(context, args);\r\n    }\r\n    var context, args, result, timer = null, previous = 0;\r\n    options = options || {};\r\n    return function(){\r\n      var now = new Date, dt;\r\n      \r\n      context = this;\r\n      args = arguments;\r\n      \r\n      if (!previous && options.leading === false) previous = now;\r\n      dt = delay - (now - previous);\r\n      \r\n      if (dt <= 0) {\r\n        clearTimeout(timer);\r\n        timer = null;\r\n        previous = now;\r\n        result = func.apply(context, args);\r\n      } else if (!timer && options.trailing !== false) {\r\n        timer = setTimeout(timeout, dt);\r\n      }\r\n      return result;\r\n    };\r\n  }\r\n  \r\n  return {\r\n    hasClass: hasClass,\r\n    removeClass: removeClass,\r\n    addClass: addClass,\r\n    each: each,\r\n    isArray: isArray,\r\n    bind: bind,\r\n    asyncCall: asyncCall,\r\n    defineLockedProperty: defineLockedProperty,\r\n    ie: ie,\r\n    addEventListener: addEventListener,\r\n    removeEventListener: removeEventListener,\r\n    now: now,\r\n    trimLeft: trimLeft,\r\n    trimRight: trimRight,\r\n    map: map,\r\n    setCookie: setCookie,\r\n    getCookie: getCookie,\r\n    getCookies: getCookies,\r\n    endsWith: endsWith,\r\n    inject: inject,\r\n    isJSONString: isJSONString,\r\n    xhr: xhr,\r\n    buildArgumentList: buildArgumentList,\r\n    bindFunctionCallbacks: bindFunctionCallbacks,\r\n    merge: merge,\r\n    throttle: throttle\r\n  };\r\n});\n//# sourceURL=/utils.js'),eval('define(\'windowReadyEvent\',["utils"], function(utils){\r\n  function addEventListener(event, callback) {\r\n    if (!listeners.hasOwnProperty(event)) {\r\n      listeners[event] = [];\r\n    }\r\n    listeners[event].push(callback);\r\n    \r\n    // Make sure the added event listener is executed!\r\n    var readyState = pageStates.indexOf(document.readyState);\r\n    if (readyState <= lastState) {\r\n      callback();\r\n    }\r\n  }\r\n  \r\n  function removeEventListener(event, callback) {\r\n    if (!listeners.hasOwnProperty(event)) {\r\n      return;\r\n    }\r\n    var l = listeners[event];\r\n    for (var i = 0, len = l.length; i < len; i++) {\r\n      if (l[i] === callback) {\r\n        l[i].splice(i, 1);\r\n        return;\r\n      }\r\n    }\r\n  }\r\n  \r\n  function update() {\r\n    var readyState = pageStates.indexOf(document.readyState);\r\n    utils.each(listeners, function(key, val){\r\n      var eventState = pageStates.indexOf(key);\r\n      if (lastState < eventState < readyState) {\r\n        for (var i = 0, len = val.length; i < len; i++) {\r\n          val[i]();\r\n        }\r\n      }\r\n    });\r\n    lastState = readyState;\r\n  }\r\n  \r\n  function init() {\r\n    utils.addEventListener(document, "readystatechange", update, true);\r\n    utils.addEventListener(document, "DOMContentLoaded", update, true);\r\n    update();\r\n  }\r\n  \r\n  var listeners = {};\r\n  var pageStates = ["uninitialized", "loading", "interactive", "complete"];\r\n  var lastState = -1;\r\n  \r\n  init();\r\n  \r\n  return {\r\n    addEventListener: addEventListener,\r\n    removeEventListener: removeEventListener\r\n  };\r\n});\n//# sourceURL=/windowReadyEvent.js'),eval("define('unsafeWindow',[], function(){\r\n  return window;\r\n});\n//# sourceURL=/unsafeWindow.js"),eval('define(\'player/api\',["unsafeWindow", "utils"], function(unsafeWindow, utils){\r\n  function getAPI() {\r\n    if (!apiCache) {\r\n      apiCache = bindPlayerAPI();\r\n    }\r\n    return apiCache;\r\n  }\r\n  function setAPI(api) {\r\n    apiCache = api;\r\n  }\r\n  function bindPlayerAPI() {\r\n    var player = document.getElementById("movie_player");\r\n    var api = {};\r\n    \r\n    if (player && player.getApiInterface) {\r\n      var apiInterface = player.getApiInterface();\r\n      for (var i = 0, len = apiInterface.length; i < len; i++) {\r\n        api[apiInterface[i]] = utils.bind(player, player[apiInterface[i]]);\r\n      }\r\n    }\r\n    return api;\r\n  }\r\n  \r\n  var apiCache = null;\r\n  \r\n  return {\r\n    getAPI: getAPI,\r\n    setAPI: setAPI\r\n  };\r\n});\n//# sourceURL=/player/api.js'),eval('define(\'console\',["utils"], function(utils){\r\n  function setEnabled(b) {\r\n    enabled = b;\r\n  }\r\n  \r\n  function log() {\r\n    if (!enabled) return function(){};\r\n    return console.log.bind(console, "injected");\r\n  }\r\n  \r\n  function error() {\r\n    if (!enabled) return function(){};\r\n    return console.error.bind(console, "injected");\r\n  }\r\n  \r\n  function warn() {\r\n    if (!enabled) return function(){};\r\n    return console.warn.bind(console, "injected");\r\n  }\r\n  \r\n  var enabled = true;\r\n  \r\n  var retObj = {};\r\n  utils.defineLockedProperty(retObj, "log", function(){}, log);\r\n  utils.defineLockedProperty(retObj, "error", function(){}, error);\r\n  utils.defineLockedProperty(retObj, "warn", function(){}, warn);\r\n  \r\n  return retObj;\r\n});\n//# sourceURL=/console.js'),eval('define(\'player/config\',["utils", "unsafeWindow", "console"], function(utils, uw, con){\r\n  function getConfig() {\r\n    return config;\r\n  }\r\n  \r\n  function setConfig(cfg, val) {\r\n    if (typeof cfg === "string") {\r\n      var parts = cfg.split(".");\r\n      var cfg = config;\r\n      for (var i = 0, len = parts.length; i < len; i++) {\r\n        if (i === len - 1) {\r\n          cfg[parts[i]] = val;\r\n        } else {\r\n          if (!(parts[i] in cfg)) {\r\n            cfg[parts[i]] = {};\r\n          }\r\n          cfg = cfg[parts[i]];\r\n        }\r\n      }\r\n    } else {\r\n      config = cfg;\r\n    }\r\n  }\r\n  \r\n  function configSetter(cfg) {\r\n    setConfig(JSON.parse(JSON.stringify(cfg))); // Let\'s clone it\r\n    merge(cfg, persistentConfig);\r\n  }\r\n  \r\n  function configGetter() {\r\n    var cfg = getConfig();\r\n    if (!cfg) return cfg;\r\n    cfg = JSON.parse(JSON.stringify(cfg));\r\n    merge(cfg, persistentConfig);\r\n    return cfg;\r\n  }\r\n  \r\n  function setPersistentConfig(cfg, val) {\r\n    if (typeof cfg === "string") {\r\n      var parts = cfg.split(".");\r\n      var cfg = persistentConfig;\r\n      for (var i = 0, len = parts.length; i < len; i++) {\r\n        if (i === len - 1) {\r\n          cfg[parts[i]] = val;\r\n        } else {\r\n          if (!(parts[i] in cfg)) {\r\n            cfg[parts[i]] = {};\r\n          }\r\n          cfg = cfg[parts[i]];\r\n        }\r\n      }\r\n    } else {\r\n      persistentConfig = cfg;\r\n    }\r\n  }\r\n  \r\n  function getPersistentConfig() {\r\n    return persistentConfig;\r\n  }\r\n  \r\n  function merge(cfg, persistent) {\r\n    utils.each(persistent, function(key, value){\r\n      if (typeof persistent === "object") {\r\n        if (!(key in cfg)) {\r\n          cfg[key] = JSON.parse(JSON.stringify(value));\r\n        } else {\r\n          merge(cfg[key], persistent[key]);\r\n        }\r\n      } else {\r\n        cfg[key] = value;\r\n      }\r\n    });\r\n    return cfg;\r\n  }\r\n  \r\n  var config = {};\r\n  var persistentConfig = {};\r\n  \r\n  // Make sure that ytplayer variable is set\r\n  uw.ytplayer = uw.ytplayer || {};\r\n  \r\n  config = uw.ytplayer.config || {};\r\n  \r\n  utils.defineLockedProperty(uw.ytplayer, "config", configSetter, configGetter);\r\n  \r\n  return {\r\n    getConfig: getConfig,\r\n    setConfig: setConfig,\r\n    setPersistentConfig: setPersistentConfig,\r\n    getPersistentConfig: getPersistentConfig\r\n  };\r\n});\n//# sourceURL=/player/config.js'),eval("define('unsafeYouTubeCenter',[\"unsafeWindow\"], function(uw){\r\n  var ytcenter = {};\r\n  ytcenter.player = {};\r\n  \r\n  uw.ytcenter = ytcenter;\r\n  \r\n  return ytcenter;\r\n});\n//# sourceURL=/unsafeYouTubeCenter.js"),eval('define(\'player/onYouTubePlayerReady\',["unsafeWindow", "player/api", "player/config", "utils", "unsafeYouTubeCenter"], function(uw, playerAPI, config, utils, uytc){\r\n  function onPlayerReady(api) {\r\n    playerAPI.setAPI(api);\r\n    \r\n    if (typeof api === "object") {\r\n      for (var i = 0, len = listeners.length; i < len; i++) {\r\n        listeners[i].apply(null, arguments);\r\n      }\r\n    }\r\n  }\r\n  \r\n  function addListener(callback) {\r\n    listeners.push(callback);\r\n  }\r\n  \r\n  function removeListener(callback) {\r\n    for (var i = 0, len = listeners.length; i < len; i++) {\r\n      if (listeners[i] === callback) {\r\n        listeners.splice(i, 1);\r\n        break;\r\n      }\r\n    }\r\n  }\r\n  \r\n  var listeners = [];\r\n  \r\n  config.setPersistentConfig("args.jsapicallback", "ytcenter.player.onReady");\r\n  uytc.player.onReady = utils.bind(this, onPlayerReady)\r\n  \r\n  return {\r\n    addListener: addListener,\r\n    removeListener: removeListener\r\n  };\r\n});\n//# sourceURL=/player/onYouTubePlayerReady.js'),eval('define(\'player/listeners\',["utils", "player/api", "unsafeWindow", "console", "player/onYouTubePlayerReady"], function(utils, playerAPI, uw, con, onReady){\r\n  // Get the YouTube listener for the passed event.\r\n  function getYouTubeListener(event) {\r\n    var ytEvent = "ytPlayer" + event + "player" + playerId;\r\n    return ytListeners[ytEvent];\r\n  }\r\n  \r\n  // The latest player id registered in the global window.\r\n  function getNewestPlayerId() {\r\n    var id = 1, i;\r\n    utils.each(uw, function(key, value){\r\n      if (key.indexOf("ytPlayer") !== -1) {\r\n        i = parseInt(key.match(/player([0-9]+)$/)[1]);\r\n        if (i > id) {\r\n          id = i;\r\n        }\r\n      }\r\n    });\r\n    return id;\r\n  }\r\n  \r\n  function ytListenerContainerSetter(event, func) {\r\n    var ytEvent = "ytPlayer" + event + "player" + playerId;\r\n    ytListeners[ytEvent] = func;\r\n  }\r\n  function ytListenerContainerGetter(event, func) {\r\n    return utils.bind(null, callListener, event, 1);\r\n  }\r\n  \r\n  /* Origin argument\r\n   * If origin is equal to 0 then the origin is directly from the player (only YouTube Center\'s listeners get executed if override is false).\r\n   * If origin is equal to 1 then the origin is from the global listeners (both YouTube\'s and YouTube Center\'s listeners get executed).\r\n   */\r\n  function callListener(event, origin) {\r\n    function generateThisObject() {\r\n      return {\r\n        getOriginalListener: utils.bind(null, getYouTubeListener, event)\r\n      };\r\n    }\r\n    \r\n    var ytEvent = "ytPlayer" + event + "player" + playerId;\r\n    var args = Array.prototype.slice.call(arguments, 2);\r\n    var returnVal = null;\r\n    \r\n    if (enabled && origin === 0 && (!events.hasOwnProperty(event) || (events.hasOwnProperty(event) && !events[event].override))) {\r\n      /* Override is false and the origin is from the player; call the YouTube Center listeners */\r\n      if (events.hasOwnProperty(event)) {\r\n        for (var i = 0, len = events[event].listeners.length; i < len; i++) {\r\n          returnVal = events[event].listeners[i].apply(null, args);\r\n        }\r\n      }\r\n    } else if (enabled && origin === 1) {\r\n      if (events.hasOwnProperty(event) && events[event].override) {\r\n        /* Override is true and the origin is from the global window; call the YouTube Center listeners */\r\n        for (var i = 0, len = events[event].listeners.length; i < len; i++) {\r\n          events[event].listeners[i].apply(generateThisObject(), args);\r\n        }\r\n        con.log("[Player Listener] Event " + event + " was called with", args);\r\n      } else if (ytListeners[ytEvent]) {\r\n        if (apiNotAvailable) {\r\n          /* API is not available therefore call YouTube Center listeners as YouTube listener is called  */\r\n          for (var i = 0, len = events[event].listeners.length; i < len; i++) {\r\n            returnVal = events[event].listeners[i].apply(null, args);\r\n          }\r\n        }\r\n        \r\n        /* Override is false and the origin is from the global window; call the YouTube listener */\r\n        returnVal = ytListeners[ytEvent].apply(uw, args);\r\n        \r\n        con.log("[Player Listener] Event " + event + " was called with", args);\r\n      }\r\n    } else if (!enabled) {\r\n      /* Everything is disabled; call the YouTube listener */\r\n      returnVal = ytListeners[ytEvent].apply(uw, args);\r\n    }\r\n    return returnVal;\r\n  }\r\n  \r\n  function addPlayerListener() {\r\n    var api = playerAPI.getAPI();\r\n    var event;\r\n    \r\n    if (api && api.addEventListener) {\r\n      apiNotAvailable = false;\r\n      for (event in events) {\r\n        if (events.hasOwnProperty(event)) {\r\n          playerListener[event] = utils.bind(null, callListener, event, 0);\r\n          api.addEventListener(event, playerListener[event]);\r\n        }\r\n      }\r\n    } else {\r\n      apiNotAvailable = true;\r\n      con.error("[Player Listener] Player API is not available!");\r\n    }\r\n  }\r\n  \r\n  function initGlobalListeners() {\r\n    if (globalListenersInitialized) return; // Make sure that this function is only called once.\r\n    globalListenersInitialized = true;\r\n    for (var event in events) {\r\n      if (events.hasOwnProperty(event)) {\r\n        var ytEvent = "ytPlayer" + event + "player" + playerId;\r\n        if (uw[ytEvent]) {\r\n          ytListeners[ytEvent] = uw[ytEvent];\r\n        }\r\n        utils.defineLockedProperty(uw, ytEvent,\r\n          utils.bind(null, ytListenerContainerSetter, event),\r\n          utils.bind(null, ytListenerContainerGetter, event)\r\n        );\r\n      }\r\n    }\r\n  }\r\n  \r\n  function init() {\r\n    if (enabled) return;\r\n    con.log("[Player Listener] Has begun the init...");\r\n    var api = playerAPI.getAPI();\r\n    playerId = getNewestPlayerId();\r\n    \r\n    enabled = true; // Indicate that the it\'s active.\r\n\r\n    // Add the listeners normally to the player\r\n    addPlayerListener();\r\n    \r\n    // Replace the global listeners with custom listeners in case the override property is set to true\r\n    initGlobalListeners();\r\n  }\r\n  \r\n  function addEventListener(event, listener) {\r\n    if (!events.hasOwnProperty(event)) return;\r\n    \r\n    removeEventListener(event, listener); // Make sure that there is only one instance of the listener registered.\r\n    events[event].listeners.push(listener);\r\n  }\r\n      \r\n  function removeEventListener(event, listener) {\r\n    if (!events.hasOwnProperty(event)) return;\r\n    for (var i = 0, len = events[event].listeners.length; i < len; i++) {\r\n      if (events[event].listeners[i] === listener) {\r\n        return events[event].listeners.splice(i, 1);\r\n      }\r\n    }\r\n  }\r\n  \r\n  function setOverride(event, override) {\r\n    if (!events.hasOwnProperty(event)) return;\r\n    events[event].override = !!override;\r\n  }\r\n  \r\n  function unloadPlayerListeners() {\r\n    var api = playerAPI.getAPI();\r\n    var event;\r\n    \r\n    if (api && api.removeEventListener) {\r\n      for (event in events) {\r\n        if (events.hasOwnProperty(event)) {\r\n          api.removeEventListener(event, playerListener[event]);\r\n          delete playerListener[event];\r\n        }\r\n      }\r\n    } else {\r\n      con.error("[Player Listener] Player API is not available!");\r\n    }\r\n  }\r\n  \r\n  function unload() {\r\n    unloadPlayerListeners();\r\n    enabled = false;\r\n    apiNotAvailable = true;\r\n  }\r\n  \r\n  var playerId = 1;\r\n  var ytListeners = {};\r\n  var playerListener = {}; // Reference for unload\r\n  var enabled = false;\r\n  var globalListenersInitialized = false;\r\n  var apiNotAvailable = true;\r\n  \r\n  var events = {\r\n    "onApiChange": {\r\n      override: false,\r\n      listeners: []\r\n    },\r\n    "onCueRangeEnter": {\r\n      override: false,\r\n      listeners: []\r\n    },\r\n    "onCueRangeExit": {\r\n      override: false,\r\n      listeners: []\r\n    },\r\n    "onError": {\r\n      override: false,\r\n      listeners: []\r\n    },\r\n    "onNavigate": {\r\n      override: false,\r\n      listeners: []\r\n    },\r\n    "onPlaybackQualityChange": {\r\n      override: false,\r\n      listeners: []\r\n    },\r\n    "onStateChange": {\r\n      override: false,\r\n      listeners: []\r\n    },\r\n    "onTabOrderChange": {\r\n      override: false,\r\n      listeners: []\r\n    },\r\n    "onVolumeChange": {\r\n      override: false,\r\n      listeners: []\r\n    },\r\n    "onAdStart": {\r\n      override: false,\r\n      listeners: []\r\n    },\r\n    "onReady": {\r\n      override: false,\r\n      listeners: []\r\n    },\r\n    "RATE_SENTIMENT": {\r\n      override: false,\r\n      listeners: []\r\n    },\r\n    "SHARE_CLICKED": {\r\n      override: false,\r\n      listeners: []\r\n    },\r\n    "SIZE_CLICKED": {\r\n      override: false,\r\n      listeners: []\r\n    },\r\n    "WATCH_LATER": {\r\n      override: false,\r\n      listeners: []\r\n    },\r\n    "AdvertiserVideoView": {\r\n      override: false,\r\n      listeners: []\r\n    },\r\n    "captionschanged": {\r\n      override: false,\r\n      listeners: []\r\n    },\r\n    "onRemoteReceiverSelected": {\r\n      override: false,\r\n      listeners: []\r\n    }\r\n  };\r\n  \r\n  onReady.addListener(init);\r\n  \r\n  return {\r\n    addEventListener: addEventListener,\r\n    removeEventListener: removeEventListener,\r\n    setOverride: setOverride,\r\n    init: init,\r\n    unload: unload\r\n  };\r\n});\n//# sourceURL=/player/listeners.js'),eval('define(\'player/player\',["player/api", "player/config", "unsafeWindow", "player/size"], function(playerAPI, playerConfig, uw, size){\r\n  function getType() {\r\n    var api = playerAPI.getAPI();\r\n    if (api && typeof api.getPlayerType === "function") {\r\n      return api.getPlayerType();\r\n    }\r\n    var cfg = playerConfig.getConfig();\r\n    if (cfg.html5) {\r\n      return "html5";\r\n    } else {\r\n      return "flash";\r\n    }\r\n  }\r\n  \r\n  function setType(type) {\r\n    var currentType = getType();\r\n    if (type === currentType) {\r\n      return; // Do nothing as it\'s already the desired type\r\n    } else {\r\n      var api = playerAPI.getAPI();\r\n      playerConfig.setConfig("html5", type);\r\n      if (api && typeof api.loadNewVideoConfig === "function") {\r\n        api.loadNewVideoConfig(uw.ytplayer.config);\r\n      }\r\n    }\r\n  }\r\n  \r\n  function getControlbarHeight() {\r\n    var none = 0;\r\n    var onlyControlbar = 3;\r\n    var onlyProgressbar = 30;\r\n    var both = 35;\r\n    \r\n    var cfg = playerConfig.getConfig();\r\n    var autohide = null;\r\n    \r\n    if (cfg && cfg.args && typeof cfg.args.autohide === "string") {\r\n      autohide = cfg.args.autohide;\r\n    } else if (getType() === "html5") {\r\n      size = require("player/size");\r\n      var ratio = size.getRatio();\r\n      if (ratio < 1.35) {\r\n        autohide = "3";\r\n      }\r\n    }\r\n    \r\n    switch (autohide) {\r\n      case "0": return both;\r\n      case "1": return none;\r\n      case "3": return onlyControlbar;\r\n      case "2": default: return onlyProgressbar;\r\n    }\r\n  }\r\n  \r\n  return {\r\n    getType: getType,\r\n    setType: setType,\r\n    getControlbarHeight: getControlbarHeight\r\n  };\r\n});\n//# sourceURL=/player/player.js'),eval("define('window',[], function(){\r\n  function getInnerWidth() {\r\n    return window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;\r\n  }\r\n  function getInnerHeight() {\r\n    return window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;\r\n  }\r\n  \r\n  function getClientWidth() {\r\n    return document.documentElement.clientWidth || window.innerWidth || document.body.clientWidth;\r\n  }\r\n  \r\n  function getClientHeight() {\r\n    return document.documentElement.clientHeight || window.innerHeight || document.body.clientHeight;\r\n  }\r\n  \r\n  function addEventListener(event, callback, capture) {\r\n    window.addEventListener(event, callback, capture);\r\n  }\r\n  \r\n  return {\r\n    getClientWidth: getClientWidth,\r\n    getClientHeight: getClientHeight,\r\n    getInnerWidth: getInnerWidth,\r\n    getInnerHeight: getInnerHeight,\r\n    addEventListener: addEventListener\r\n  }\r\n});\n//# sourceURL=/window.js"),eval('define(\'player/size\',["player/listeners", "player/player", "window", "utils"], function(listeners, player, win, utils){\r\n  function onPlayerSizeChange(large) {\r\n    if (large) {\r\n      setSize(largeSize);\r\n    } else {\r\n      setSize(smallSize);\r\n    }\r\n    update();\r\n  }\r\n  \r\n  function setSize(nSize) {\r\n    size = nSize;\r\n    update();\r\n  }\r\n  \r\n  function update() {\r\n    var playerEl = document.getElementById("player");\r\n    var playerAPIEl = document.getElementById("player-api");\r\n    var playerTheaterBackgroundEl = document.getElementById("theater-background");\r\n    \r\n    utils.removeClass(playerEl, "watch-small watch-medium watch-large");\r\n    if (size.large) {\r\n      utils.addClass(playerEl, "watch-large");\r\n    } else {\r\n      utils.addClass(playerEl, "watch-small");\r\n    }\r\n    \r\n    var dim = getPlayerDimension();\r\n    if (size.large) {\r\n      playerEl.style.width = dim.width + "px";\r\n    } else {\r\n      playerEl.style.width = "auto";\r\n    }\r\n    playerTheaterBackgroundEl.style.height = dim.height + "px";\r\n    \r\n    playerAPIEl.style.width = dim.width + "px";\r\n    playerAPIEl.style.height = dim.height + "px";\r\n    \r\n    var contentContainerEl = document.getElementById("watch7-container");\r\n    if (size.large) {\r\n      utils.addClass(contentContainerEl, "watch-wide");\r\n    } else {\r\n      utils.removeClass(contentContainerEl, "watch-wide");\r\n    }\r\n    \r\n    var sidebarEl = document.getElementById("watch7-sidebar");\r\n    if (size.large) {\r\n      sidebarEl.style.top = "";\r\n    } else {\r\n      sidebarEl.style.top = "-" + dim.height + "px";\r\n    }\r\n  }\r\n  \r\n  function getPlayerDimension() {\r\n    var playerEl = document.getElementById("player");\r\n    \r\n    var width = null;\r\n    var height = null;\r\n    \r\n    if (typeof size.width === "number") {\r\n      if (size.widthUnit === "%") {\r\n        width = size.width/100*win.getClientWidth();\r\n      } else {\r\n        width = size.width;\r\n      }\r\n    }\r\n    \r\n    if (typeof size.width === "number") {\r\n      if (size.heightUnit === "%") {\r\n        height = size.height/100*win.getClientHeight();\r\n        // if (something.isTopBar())\r\n        height -= 50;\r\n      } else {\r\n        height = size.height;\r\n      }\r\n    }\r\n    \r\n    var ratio = getRatio();\r\n    \r\n    if (typeof width !== "number") {\r\n      if (typeof height === "number") {\r\n        width = height*ratio;\r\n      } else {\r\n        width = getDefaultWidth();\r\n      }\r\n    }\r\n    \r\n    if (typeof height !== "number") {\r\n      if (typeof width === "number") {\r\n        height = width/ratio;\r\n      } else {\r\n        height = getDefaultHeight();\r\n      }\r\n    }\r\n    \r\n    // Controlbar + Progressbar height\r\n    var controlbarHeight = player.getControlbarHeight();\r\n    height += controlbarHeight;\r\n    \r\n    // Multi camera additional height\r\n    if (utils.hasClass(playerEl, "watch-multicamera") && player.getType === "flash") {\r\n      height += 80;\r\n    }\r\n    \r\n    return {\r\n      width: Math.floor(width),\r\n      height: Math.floor(height)\r\n    };\r\n  }\r\n  \r\n  function setSmallPlayerSize(small) {\r\n    smallSize = small;\r\n  }\r\n  \r\n  function setLargePlayerSize(large) {\r\n    largeSize = large;\r\n  }\r\n  \r\n  function getRatio() {\r\n    return 16/9;\r\n  }\r\n  \r\n  function getDefaultWidth() {\r\n    return 640;\r\n  }\r\n  \r\n  function getDefaultHeight() {\r\n    return getDefaultWidth()/getRatio();\r\n  }\r\n  \r\n  var smallSize = {\r\n    width: 640,\r\n    widthUnit: "px",\r\n    large: false\r\n  };\r\n  var largeSize = {\r\n    width: 1280,\r\n    widthUnit: "px",\r\n    large: true\r\n  };\r\n  \r\n  var size = {\r\n    width: 1280,\r\n    height: 720,\r\n    widthUnit: "px",\r\n    heightUnit: "px",\r\n    large: true\r\n  };\r\n  \r\n  listeners.setOverride("SIZE_CLICKED", true);\r\n  listeners.addEventListener("SIZE_CLICKED", onPlayerSizeChange);\r\n  \r\n  win.addEventListener("resize", utils.throttle(update, 100));\r\n  \r\n  return {\r\n    setSize: setSize,\r\n    getRatio: getRatio\r\n  };\r\n});\n//# sourceURL=/player/size.js'),eval('require.config({\r\n  waitSeconds: 0\r\n});\r\n\r\ndefine(\'main.page\',["windowReadyEvent", "player/listeners", "console", "player/size"], function(windowReadyEvent, playerListener, con, size){\r\n  playerListener.setOverride("onStateChange", true);\r\n  playerListener.addEventListener("onStateChange", function(state){\r\n    con.log("State has been changed to " + state + ".");\r\n  });\r\n});\n//# sourceURL=/main.page.js'),require(["main.page"])
-}();
-//# sourceMappingURL=main.page.min.js.map
+(function(){function mainPage(UserProxy_token, UserProxy_functions, globalSettings) {
+(function () {/**
+ * @license almond 0.2.9 Copyright (c) 2011-2014, The Dojo Foundation All Rights Reserved.
+ * Available via the MIT or new BSD license.
+ * see: http://github.com/jrburke/almond for details
+ */
+//Going sloppy to avoid 'use strict' string cost, but strict practices should
+//be followed.
+/*jslint sloppy: true */
+/*global setTimeout: false */
+
+var requirejs, require, define;
+(function (undef) {
+    var main, req, makeMap, handlers,
+        defined = {},
+        waiting = {},
+        config = {},
+        defining = {},
+        hasOwn = Object.prototype.hasOwnProperty,
+        aps = [].slice,
+        jsSuffixRegExp = /\.js$/;
+
+    function hasProp(obj, prop) {
+        return hasOwn.call(obj, prop);
+    }
+
+    /**
+     * Given a relative module name, like ./something, normalize it to
+     * a real name that can be mapped to a path.
+     * @param {String} name the relative name
+     * @param {String} baseName a real name that the name arg is relative
+     * to.
+     * @returns {String} normalized name
+     */
+    function normalize(name, baseName) {
+        var nameParts, nameSegment, mapValue, foundMap, lastIndex,
+            foundI, foundStarMap, starI, i, j, part,
+            baseParts = baseName && baseName.split("/"),
+            map = config.map,
+            starMap = (map && map['*']) || {};
+
+        //Adjust any relative paths.
+        if (name && name.charAt(0) === ".") {
+            //If have a base name, try to normalize against it,
+            //otherwise, assume it is a top-level require that will
+            //be relative to baseUrl in the end.
+            if (baseName) {
+                //Convert baseName to array, and lop off the last part,
+                //so that . matches that "directory" and not name of the baseName's
+                //module. For instance, baseName of "one/two/three", maps to
+                //"one/two/three.js", but we want the directory, "one/two" for
+                //this normalization.
+                baseParts = baseParts.slice(0, baseParts.length - 1);
+                name = name.split('/');
+                lastIndex = name.length - 1;
+
+                // Node .js allowance:
+                if (config.nodeIdCompat && jsSuffixRegExp.test(name[lastIndex])) {
+                    name[lastIndex] = name[lastIndex].replace(jsSuffixRegExp, '');
+                }
+
+                name = baseParts.concat(name);
+
+                //start trimDots
+                for (i = 0; i < name.length; i += 1) {
+                    part = name[i];
+                    if (part === ".") {
+                        name.splice(i, 1);
+                        i -= 1;
+                    } else if (part === "..") {
+                        if (i === 1 && (name[2] === '..' || name[0] === '..')) {
+                            //End of the line. Keep at least one non-dot
+                            //path segment at the front so it can be mapped
+                            //correctly to disk. Otherwise, there is likely
+                            //no path mapping for a path starting with '..'.
+                            //This can still fail, but catches the most reasonable
+                            //uses of ..
+                            break;
+                        } else if (i > 0) {
+                            name.splice(i - 1, 2);
+                            i -= 2;
+                        }
+                    }
+                }
+                //end trimDots
+
+                name = name.join("/");
+            } else if (name.indexOf('./') === 0) {
+                // No baseName, so this is ID is resolved relative
+                // to baseUrl, pull off the leading dot.
+                name = name.substring(2);
+            }
+        }
+
+        //Apply map config if available.
+        if ((baseParts || starMap) && map) {
+            nameParts = name.split('/');
+
+            for (i = nameParts.length; i > 0; i -= 1) {
+                nameSegment = nameParts.slice(0, i).join("/");
+
+                if (baseParts) {
+                    //Find the longest baseName segment match in the config.
+                    //So, do joins on the biggest to smallest lengths of baseParts.
+                    for (j = baseParts.length; j > 0; j -= 1) {
+                        mapValue = map[baseParts.slice(0, j).join('/')];
+
+                        //baseName segment has  config, find if it has one for
+                        //this name.
+                        if (mapValue) {
+                            mapValue = mapValue[nameSegment];
+                            if (mapValue) {
+                                //Match, update name to the new value.
+                                foundMap = mapValue;
+                                foundI = i;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (foundMap) {
+                    break;
+                }
+
+                //Check for a star map match, but just hold on to it,
+                //if there is a shorter segment match later in a matching
+                //config, then favor over this star map.
+                if (!foundStarMap && starMap && starMap[nameSegment]) {
+                    foundStarMap = starMap[nameSegment];
+                    starI = i;
+                }
+            }
+
+            if (!foundMap && foundStarMap) {
+                foundMap = foundStarMap;
+                foundI = starI;
+            }
+
+            if (foundMap) {
+                nameParts.splice(0, foundI, foundMap);
+                name = nameParts.join('/');
+            }
+        }
+
+        return name;
+    }
+
+    function makeRequire(relName, forceSync) {
+        return function () {
+            //A version of a require function that passes a moduleName
+            //value for items that may need to
+            //look up paths relative to the moduleName
+            return req.apply(undef, aps.call(arguments, 0).concat([relName, forceSync]));
+        };
+    }
+
+    function makeNormalize(relName) {
+        return function (name) {
+            return normalize(name, relName);
+        };
+    }
+
+    function makeLoad(depName) {
+        return function (value) {
+            defined[depName] = value;
+        };
+    }
+
+    function callDep(name) {
+        if (hasProp(waiting, name)) {
+            var args = waiting[name];
+            delete waiting[name];
+            defining[name] = true;
+            main.apply(undef, args);
+        }
+
+        if (!hasProp(defined, name) && !hasProp(defining, name)) {
+            throw new Error('No ' + name);
+        }
+        return defined[name];
+    }
+
+    //Turns a plugin!resource to [plugin, resource]
+    //with the plugin being undefined if the name
+    //did not have a plugin prefix.
+    function splitPrefix(name) {
+        var prefix,
+            index = name ? name.indexOf('!') : -1;
+        if (index > -1) {
+            prefix = name.substring(0, index);
+            name = name.substring(index + 1, name.length);
+        }
+        return [prefix, name];
+    }
+
+    /**
+     * Makes a name map, normalizing the name, and using a plugin
+     * for normalization if necessary. Grabs a ref to plugin
+     * too, as an optimization.
+     */
+    makeMap = function (name, relName) {
+        var plugin,
+            parts = splitPrefix(name),
+            prefix = parts[0];
+
+        name = parts[1];
+
+        if (prefix) {
+            prefix = normalize(prefix, relName);
+            plugin = callDep(prefix);
+        }
+
+        //Normalize according
+        if (prefix) {
+            if (plugin && plugin.normalize) {
+                name = plugin.normalize(name, makeNormalize(relName));
+            } else {
+                name = normalize(name, relName);
+            }
+        } else {
+            name = normalize(name, relName);
+            parts = splitPrefix(name);
+            prefix = parts[0];
+            name = parts[1];
+            if (prefix) {
+                plugin = callDep(prefix);
+            }
+        }
+
+        //Using ridiculous property names for space reasons
+        return {
+            f: prefix ? prefix + '!' + name : name, //fullName
+            n: name,
+            pr: prefix,
+            p: plugin
+        };
+    };
+
+    function makeConfig(name) {
+        return function () {
+            return (config && config.config && config.config[name]) || {};
+        };
+    }
+
+    handlers = {
+        require: function (name) {
+            return makeRequire(name);
+        },
+        exports: function (name) {
+            var e = defined[name];
+            if (typeof e !== 'undefined') {
+                return e;
+            } else {
+                return (defined[name] = {});
+            }
+        },
+        module: function (name) {
+            return {
+                id: name,
+                uri: '',
+                exports: defined[name],
+                config: makeConfig(name)
+            };
+        }
+    };
+
+    main = function (name, deps, callback, relName) {
+        var cjsModule, depName, ret, map, i,
+            args = [],
+            callbackType = typeof callback,
+            usingExports;
+
+        //Use name if no relName
+        relName = relName || name;
+
+        //Call the callback to define the module, if necessary.
+        if (callbackType === 'undefined' || callbackType === 'function') {
+            //Pull out the defined dependencies and pass the ordered
+            //values to the callback.
+            //Default to [require, exports, module] if no deps
+            deps = !deps.length && callback.length ? ['require', 'exports', 'module'] : deps;
+            for (i = 0; i < deps.length; i += 1) {
+                map = makeMap(deps[i], relName);
+                depName = map.f;
+
+                //Fast path CommonJS standard dependencies.
+                if (depName === "require") {
+                    args[i] = handlers.require(name);
+                } else if (depName === "exports") {
+                    //CommonJS module spec 1.1
+                    args[i] = handlers.exports(name);
+                    usingExports = true;
+                } else if (depName === "module") {
+                    //CommonJS module spec 1.1
+                    cjsModule = args[i] = handlers.module(name);
+                } else if (hasProp(defined, depName) ||
+                           hasProp(waiting, depName) ||
+                           hasProp(defining, depName)) {
+                    args[i] = callDep(depName);
+                } else if (map.p) {
+                    map.p.load(map.n, makeRequire(relName, true), makeLoad(depName), {});
+                    args[i] = defined[depName];
+                } else {
+                    throw new Error(name + ' missing ' + depName);
+                }
+            }
+
+            ret = callback ? callback.apply(defined[name], args) : undefined;
+
+            if (name) {
+                //If setting exports via "module" is in play,
+                //favor that over return value and exports. After that,
+                //favor a non-undefined return value over exports use.
+                if (cjsModule && cjsModule.exports !== undef &&
+                        cjsModule.exports !== defined[name]) {
+                    defined[name] = cjsModule.exports;
+                } else if (ret !== undef || !usingExports) {
+                    //Use the return value from the function.
+                    defined[name] = ret;
+                }
+            }
+        } else if (name) {
+            //May just be an object definition for the module. Only
+            //worry about defining if have a module name.
+            defined[name] = callback;
+        }
+    };
+
+    requirejs = require = req = function (deps, callback, relName, forceSync, alt) {
+        if (typeof deps === "string") {
+            if (handlers[deps]) {
+                //callback in this case is really relName
+                return handlers[deps](callback);
+            }
+            //Just return the module wanted. In this scenario, the
+            //deps arg is the module name, and second arg (if passed)
+            //is just the relName.
+            //Normalize module name, if it contains . or ..
+            return callDep(makeMap(deps, callback).f);
+        } else if (!deps.splice) {
+            //deps is a config object, not an array.
+            config = deps;
+            if (config.deps) {
+                req(config.deps, config.callback);
+            }
+            if (!callback) {
+                return;
+            }
+
+            if (callback.splice) {
+                //callback is an array, which means it is a dependency list.
+                //Adjust args if there are dependencies
+                deps = callback;
+                callback = relName;
+                relName = null;
+            } else {
+                deps = undef;
+            }
+        }
+
+        //Support require(['a'])
+        callback = callback || function () {};
+
+        //If relName is a function, it is an errback handler,
+        //so remove it.
+        if (typeof relName === 'function') {
+            relName = forceSync;
+            forceSync = alt;
+        }
+
+        //Simulate async callback;
+        if (forceSync) {
+            main(undef, deps, callback, relName);
+        } else {
+            //Using a non-zero value because of concern for what old browsers
+            //do, and latest browsers "upgrade" to 4 if lower value is used:
+            //http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#dom-windowtimers-settimeout:
+            //If want a value immediately, use require('id') instead -- something
+            //that works in almond on the global level, but not guaranteed and
+            //unlikely to work in other AMD implementations.
+            setTimeout(function () {
+                main(undef, deps, callback, relName);
+            }, 4);
+        }
+
+        return req;
+    };
+
+    /**
+     * Just drops the config on the floor, but returns req in case
+     * the config return value is used.
+     */
+    req.config = function (cfg) {
+        return req(cfg);
+    };
+
+    /**
+     * Expose module registry for debugging and tooling
+     */
+    requirejs._defined = defined;
+
+    define = function (name, deps, callback) {
+
+        //This module may not have dependencies
+        if (!deps.splice) {
+            //deps is not an array, so probably means
+            //an object literal or factory function for
+            //the value. Adjust args.
+            callback = deps;
+            deps = [];
+        }
+
+        if (!hasProp(defined, name) && !hasProp(waiting, name)) {
+            waiting[name] = [name, deps, callback];
+        }
+    };
+
+    define.amd = {
+        jQuery: true
+    };
+}());
+
+define("../vendor/almond", function(){});
+
+define('unsafeWindow',[], function(){
+  return window;
+});
+define('support',["unsafeWindow"], function(uw){
+  function localStorageTest() {
+    var mod = "support.test";
+    try {
+      localStorage.setItem(mod, mod);
+      localStorage.removeItem(mod);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  
+  var isWebkitURL = typeof uw.webkitURL === "object";
+  var isURL = typeof uw.URL === "object";
+  var isCreateObjectURL = false;
+  var isRevokeObjectURL = false;
+  
+  var maxthonRuntime = window && window.external && window.external.mxGetRuntime && typeof window.external.mxGetRuntime === "function";
+  
+  if (isWebkitURL) {
+    isCreateObjectURL = typeof uw.webkitURL.createObjectURL === "function";
+    isRevokeObjectURL = typeof uw.webkitURL.revokeObjectURL === "function";
+  } else if (isURL) {
+    isCreateObjectURL = typeof uw.URL.createObjectURL === "function";
+    isRevokeObjectURL = typeof uw.URL.revokeObjectURL === "function";
+  }
+  
+  return {
+    localStorage: localStorageTest(),
+    Greasemonkey: (typeof GM_setValue !== "undefined" && (typeof GM_setValue.toString === "undefined" || GM_setValue.toString().indexOf("not supported") === -1)),
+    createObjectURL: isCreateObjectURL,
+    revokeObjectURL: isRevokeObjectURL,
+    webkitURL: isWebkitURL,
+    URL: isURL,
+    maxthonRuntime: maxthonRuntime,
+    maxthonRuntimeStorage: maxthonRuntime && window.external.mxGetRuntime() && window.external.mxGetRuntime().storage,
+    firefoxPort: this.port && typeof this.port.request === "function" && this.port.storage && typeof this.port.on === "function"
+  };
+});
+define('utils',["support", "unsafeWindow"], function(support, uw){
+  function each(obj, callback) {
+    if (isArray(obj)) {
+      for (var i = 0; i < obj.length; i++) {
+        if (callback(i, obj[i]) === true) break;
+      }
+    } else {
+      for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          if (callback(key, obj[key]) === true) break;
+        }
+      }
+    }
+  }
+  
+  function isArray(arr) {
+    return Object.prototype.toString.call(arr) === "[object Array]";
+  }
+  
+  function asyncCall(scope, callback) {
+    return setTimeout(bind.apply(null, [scope, callback].concat(Array.prototype.slice.call(arguments, 2))), 0);
+  }
+  
+  function bind(scope, func) {
+    var args = Array.prototype.slice.call(arguments, 2);
+    return function(){
+      return func.apply(scope, args.concat(Array.prototype.slice.call(arguments)))
+    };
+  }
+  function trimLeft(obj){
+    return obj.replace(/^\s+/, "");
+  }
+  function trimRight(obj){
+    return obj.replace(/\s+$/, "");
+  }
+  function map(obj, callback, thisArg) {
+    for (var i = 0, n = obj.length, a = []; i < n; i++) {
+      if (i in obj) a[i] = callback.call(thisArg, obj[i]);
+    }
+    return a;
+  }
+  
+  function defineLockedProperty(obj, key, setter, getter) {
+    if (typeof obj !== "object") obj = {};
+    if (ie || typeof Object.defineProperty === "function") {
+      Object.defineProperty(obj, key, {
+        get: getter,
+        set: setter
+      });
+      return obj;
+    } else {
+      obj.__defineGetter__(key, getter);
+      obj.__defineSetter__(key, setter);
+      return obj;
+    }
+  }
+  
+  function addEventListener(elm, event, callback, useCapture) {
+    if (elm.addEventListener) {
+      elm.addEventListener(event, callback, useCapture || false);
+    } else if (elm.attachEvent) {
+      elm.attachEvent("on" + event, callback);
+    }
+  }
+  
+  function removeEventListener(elm, event, callback, useCapture) {
+    if (elm.removeEventListener) {
+      elm.removeEventListener(event, callback, useCapture || false);
+    } else if (elm.detachEvent) {
+      elm.detachEvent("on" + event, callback);
+    }
+  }
+  
+  var ie = (function(){
+    for (var v = 3, el = document.createElement('b'), all = el.all || []; el.innerHTML = '<!--[if gt IE ' + (++v) + ']><i><![endif]-->', all[0];);
+    return v > 4 ? v : !!document.documentMode;
+  }());
+  
+  var now = Date.now || function () {
+    return +new Date;
+  };
+  
+  /* Cookies */
+  function setCookie(name, value, domain, path, expires) {
+    domain = domain ? ";domain=" + encodeURIComponent(domain) : "";
+    path = path ? ";path=" + encodeURIComponent(path) : "";
+    expires = 0 > expires ? "" : 0 == expires ? ";expires=" + (new Date(1970, 1, 1)).toUTCString() : ";expires=" + (new Date(now() + 1E3 * expires)).toUTCString();
+    
+    document.cookie = encodeURIComponent(name) + "=" + encodeURIComponent(value) + domain + path + expires;
+  }
+  
+  function getCookie(key) {
+    return getCookies()[key];
+  }
+  
+  function getCookies() {
+    var c = document.cookie, v = 0, cookies = {};
+    if (document.cookie.match(/^\s*\$Version=(?:"1"|1);\s*(.*)/)) {
+      c = RegExp.$1;
+      v = 1;
+    }
+    if (v === 0) {
+      map(c.split(/[,;]/), function(cookie) {
+        var parts = cookie.split(/=/, 2),
+            name = decodeURIComponent(trimLeft(parts[0])),
+            value = parts.length > 1 ? decodeURIComponent(trimRight(parts[1])) : null;
+        cookies[name] = value;
+      });
+    } else {
+      map(c.match(/(?:^|\s+)([!#$%&'*+\-.0-9A-Z^`a-z|~]+)=([!#$%&'*+\-.0-9A-Z^`a-z|~]*|"(?:[\x20-\x7E\x80\xFF]|\\[\x00-\x7F])*")(?=\s*[,;]|$)/g), function($0, $1) {
+        var name = $0, value = $1.charAt(0) === '"' ? $1.substr(1, -1).replace(/\\(.)/g, "$1") : $1;
+        cookies[name] = value;
+      });
+    }
+    return cookies;
+  }
+  
+  function endsWith(str, suffix) {
+    return str.indexOf(suffix, str.length - suffix.length) !== -1;
+  }
+  
+  function inject(func) {
+    var script = document.createElement("script"),
+        p = (document.body || document.head || document.documentElement);
+    if (!p) {
+      throw "Could not inject!!!";
+    }
+    script.setAttribute("type", "text/javascript");
+    script.appendChild(document.createTextNode("(" + func + ")(" + buildArgumentList.apply(null, [false].concat(Array.prototype.slice.call(arguments, 1))) + ");"));
+    p.appendChild(script);
+    p.removeChild(script);
+  }
+  
+  function buildArgumentList(wrap) {
+    var list = [];
+    var args = Array.prototype.slice.call(arguments, 1);
+    
+    for (var i = 0, len = args.length; i < len; i++) {
+      if (typeof args[i] === "string") {
+        list.push("\"" + args[i].replace(/\\/, "\\\\").replace(/"/g, "\\\"") + "\"");
+      } else if (typeof args[i] === "object") {
+        list.push(JSON.stringify(args[i]));
+      } else {
+        list.push(args[i]);
+      }
+    }
+    if (wrap) {
+      return "(" + list.join(",") + ")";
+    } else {
+      return list.join(",");
+    }
+  }
+  
+  function isJSONString(json) {
+    try {
+      JSON.parse(json);
+    } catch (e) {
+      return false;
+    }
+    return true;
+  }
+  
+  function xhr(details) {
+    var xmlhttp;
+    if (typeof XMLHttpRequest !== "undefined") {
+      xmlhttp = new XMLHttpRequest();
+    } else if (typeof opera !== "undefined" && typeof opera.XMLHttpRequest !== "undefined") {
+      xmlhttp = new opera.XMLHttpRequest();
+    } else {
+      if (details["onerror"]) {
+        details["onerror"]();
+      }
+      
+      return;
+    }
+    xmlhttp.onreadystatechange = function(){
+      var responseState = {
+        responseXML:(xmlhttp.readyState == 4 ? xmlhttp.responseXML : ''),
+        responseText:(xmlhttp.readyState == 4 ? xmlhttp.responseText : ''),
+        readyState:xmlhttp.readyState,
+        responseHeaders:(xmlhttp.readyState == 4 ? xmlhttp.getAllResponseHeaders() : ''),
+        status:(xmlhttp.readyState == 4 ? xmlhttp.status : 0),
+        statusText:(xmlhttp.readyState == 4 ? xmlhttp.statusText : ''),
+        finalUrl:(xmlhttp.readyState == 4 ? xmlhttp.finalUrl : '')
+      };
+      if (details["onreadystatechange"]) {
+        details["onreadystatechange"](responseState);
+      }
+      if (xmlhttp.readyState == 4) {
+        if (details["onload"] && xmlhttp.status >= 200 && xmlhttp.status < 300) {
+          details["onload"](responseState);
+        }
+        if (details["onerror"] && (xmlhttp.status < 200 || xmlhttp.status >= 300)) {
+          details["onerror"](responseState);
+        }
+      }
+    };
+    try {
+      xmlhttp.open(details.method, details.url);
+    } catch(e) {
+      if(details["onerror"]) {
+        details["onerror"]({responseXML:'',responseText:'',readyState:4,responseHeaders:'',status:403,statusText:'Forbidden'});
+      }
+      return;
+    }
+    if (details.headers) {
+      for (var prop in details.headers) {
+        xmlhttp.setRequestHeader(prop, details.headers[prop]);
+      }
+    }
+    xmlhttp.send((typeof(details.data) != 'undefined') ? details.data : null);
+  }
+  
+  // Used for the message module (should probably move to another place)
+  // It replaces a property in the obj to a predefined function, where the arguments will be callbackId, target, referer
+  function bindFunctionCallbacks(obj, func, target, referer) {
+    for (key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        if (typeof obj[key] === "obj") {
+          bindFunctionCallbacks(obj[key]);
+        } else if (typeof obj[key] === "string") {
+          if (obj[key].indexOf("@/(message.callback)/") === 0) {
+            var callbackId = obj[key].split("@/(message.callback)/")[1];
+            obj[key] = bind(null, func, callbackId, target, referer);
+          }
+        }
+      }
+    }
+  }
+  
+  function extend(obj, defaults, deep) {
+    if (typeof obj !== "object") throw new TypeError("Unsupported type for obj.");
+    if (typeof defaults !== "object") throw new TypeError("Unsupported type for defaults.");
+    for (var key in defaults) {
+      if (defaults.hasOwnProperty(key)) {
+        if (typeof obj[key] === "object" && typeof defaults[key] === "object" && deep) {
+          extend(obj[key], defaults[key], deep);
+        } else if (!obj.hasOwnProperty(key)) {
+          obj[key] = defaults[key];
+        }
+      }
+    }
+    return obj;
+  }
+  
+  function inArray(key, arr) {
+    for (var i = 0, len = arr.length; i < len; i++) {
+      if (arr[i] === key) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  function listClasses(el) {
+    if (!el || !el.className) return [];
+    return el.className.split(" ");
+  }
+  
+  function addClass(el, className) {
+    var classes = listClasses(el);
+    var addList = className.split(" ");
+    
+    for (var i = 0, len = addList.length; i < len; i++) {
+      if (!inArray(addList[i], classes)) {
+        el.className += " " + addList[i];
+      }
+    }
+    return el.className;
+  }
+  
+  function removeClass(el, className) {
+    var classes = listClasses(el);
+    var removeList = className.split(" ");
+    
+    var buffer = [];
+    for (var i = 0, len = classes.length; i < len; i++) {
+      if (!inArray(classes[i], removeList)) {
+        buffer.push(classes[i]);
+      }
+    }
+    return el.className = buffer.join(" ");
+  }
+  
+  function hasClass(el, className) {
+    return inArray(className, listClasses(el));
+  }
+  
+  function throttle(func, delay, options){
+    function timeout() {
+      previous = options.leading === false ? 0 : new Date;
+      timer = null;
+      result = func.apply(context, args);
+    }
+    var context, args, result, timer = null, previous = 0;
+    options = options || {};
+    return function(){
+      var now = new Date, dt;
+      
+      context = this;
+      args = arguments;
+      
+      if (!previous && options.leading === false) previous = now;
+      dt = delay - (now - previous);
+      
+      if (dt <= 0) {
+        clearTimeout(timer);
+        timer = null;
+        previous = now;
+        result = func.apply(context, args);
+      } else if (!timer && options.trailing !== false) {
+        timer = setTimeout(timeout, dt);
+      }
+      return result;
+    };
+  }
+  
+  function clone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  }
+  
+  function removeDuplicates(arr) {
+    var uniqueArr = [];
+    for (var i = 0, len = arr.length; i < len; i++) {
+      if (!inArray(uniqueArr, arr[i])) {
+        uniqueArr.push(arr[i]);
+      }
+    }
+    
+    return uniqueArr;
+  }
+  
+  function escapeRegExp(str) {
+    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+  }
+  
+  function toBlob(bytes, contentType) {
+    contentType = contentType || "text/plain";
+    var sliceSize = 512;
+    
+    var bytesLength = bytes.length;
+    var slicesCount = Math.ceil(bytesLength / sliceSize);
+    
+    var byteArrays = new Array(slicesCount);
+    
+    for (var sliceIndex = 0; sliceIndex < slicesCount; ++sliceIndex) {
+      var begin = sliceIndex * sliceSize;
+      var end = Math.min(begin + sliceSize, bytesLength);
+      
+      var sliceBytes = new Array(end - begin);
+      for (var offset = begin, i = 0 ; offset < end; ++i, ++offset) {
+        sliceBytes[i] = bytes[offset].charCodeAt(0);
+      }
+      byteArrays[sliceIndex] = new Uint8Array(sliceBytes);
+    }
+    
+    return new Blob(byteArrays, { type: contentType });
+  }
+  
+  function createObjectURL(blob) {
+    if (support.createObjectURL) {
+      if (support.webkitURL) {
+        return uw.webkitURL.createObjectURL(blob);
+      } else {
+        return uw.URL.createObjectURL(blob);
+      }
+    } else {
+      throw "createObjectURL is not supported by the browser!";
+    }
+  }
+  
+  function revokeObjectURL(url) {
+    if (support.revokeObjectURL) {
+      if (support.webkitURL) {
+        return uw.webkitURL.revokeObjectURL(url);
+      } else {
+        return uw.URL.revokeObjectURL(url);
+      }
+    } else {
+      throw "revokeObjectURL is not supported by the browser!";
+    }
+  }
+  
+  // Returns a random number between min and max
+  function getRandomArbitrary(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+  
+  // Returns a random integer between min (included) and max (excluded)
+  function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+  }
+  
+  // Returns a random string of characters of chars with the length of length
+  function generateToken(chars, length) {
+    if (typeof chars !== "string") chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
+    if (typeof length !== "number") length = 64;
+    
+    var charsLength = chars.length;
+    
+    var token = "";
+    for (var i = 0; i < length; i++) {
+      token += chars[getRandomInt(0, charsLength)];
+    }
+    
+    return token;
+  }
+  
+  return {
+    hasClass: hasClass,
+    removeClass: removeClass,
+    addClass: addClass,
+    each: each,
+    isArray: isArray,
+    inArray: inArray,
+    bind: bind,
+    asyncCall: asyncCall,
+    defineLockedProperty: defineLockedProperty,
+    ie: ie,
+    addEventListener: addEventListener,
+    removeEventListener: removeEventListener,
+    now: now,
+    trimLeft: trimLeft,
+    trimRight: trimRight,
+    map: map,
+    setCookie: setCookie,
+    getCookie: getCookie,
+    getCookies: getCookies,
+    endsWith: endsWith,
+    inject: inject,
+    isJSONString: isJSONString,
+    xhr: xhr,
+    buildArgumentList: buildArgumentList,
+    bindFunctionCallbacks: bindFunctionCallbacks,
+    extend: extend,
+    throttle: throttle,
+    clone: clone,
+    removeDuplicates: removeDuplicates,
+    escapeRegExp: escapeRegExp,
+    toBlob: toBlob,
+    createObjectURL: createObjectURL,
+    revokeObjectURL: revokeObjectURL,
+    generateToken: generateToken
+  };
+});
+define('console',["utils"], function(utils){
+  function setEnabled(b) {
+    enabled = b;
+  }
+  
+  function log() {
+    if (!enabled) return function(){};
+    return console.log.bind(console, "injected[" + sessionToken + "]");
+  }
+  
+  function error() {
+    if (!enabled) return function(){};
+    return console.error.bind(console, "injected[" + sessionToken + "]");
+  }
+  
+  function warn() {
+    if (!enabled) return function(){};
+    return console.warn.bind(console, "injected[" + sessionToken + "]");
+  }
+  
+  var sessionToken = utils.generateToken(null, 8);
+  
+  var enabled = true;
+  
+  var retObj = {};
+  utils.defineLockedProperty(retObj, "log", function(){}, log);
+  utils.defineLockedProperty(retObj, "error", function(){}, error);
+  utils.defineLockedProperty(retObj, "warn", function(){}, warn);
+  
+  return retObj;
+});
+define('UserProxy/support',[], function(){
+  function customEvent() {
+    try {
+      var e = document.createEvent('CustomEvent');
+      if (e && typeof e.initCustomEvent === "function") {
+        e.initCustomEvent(mod, true, true, { mod: mod });
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+  
+  var mod = "support.test";
+  
+  return {
+    CustomEvent: customEvent
+  };
+});
+define('UserProxy/utils',[], function(){
+  function bind(scope, func) {
+    var args = Array.prototype.slice.call(arguments, 2);
+    return function(){
+      return func.apply(scope, args.concat(Array.prototype.slice.call(arguments)))
+    };
+  }
+  
+  // Iterate through obj with the callback function.
+  function each(obj, callback) {
+    if (isArray(obj)) {
+      for (var i = 0; i < obj.length; i++) {
+        if (callback(i, obj[i]) === true) break;
+      }
+    } else {
+      for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          if (callback(key, obj[key]) === true) break;
+        }
+      }
+    }
+  }
+  
+  function getKeys(obj) {
+    var keys = [];
+    each(obj, function(key){
+      keys.push(key);
+    });
+    return keys;
+  }
+  
+  // Returns a boolean indicating if object arr is an array.
+  function isArray(arr) {
+    return Object.prototype.toString.call(arr) === "[object Array]";
+  }
+  
+  // Returns a boolean indicating if the value is in the array.
+  function inArray(value, arr) {
+    for (var i = 0, len = arr.length; i < len; i++) {
+      if (arr[i] === value) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  function indexOfArray(value, arr) {
+    for (var i = 0, len = arr.length; i < len; i++) {
+      if (arr[i] === value) {
+        return i;
+      }
+    }
+    return -1;
+  }
+  
+  function indexOf(value, arr) {
+    if (isArray(value, arr)) {
+      return indexOfArray(value, arr);
+    }
+  }
+  
+  // Returns a random number between min and max
+  function getRandomArbitrary(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+  
+  // Returns a random integer between min (included) and max (excluded)
+  function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+  }
+  
+  // Returns a random string of characters of chars with the length of length
+  function generateToken(chars, length) {
+    if (typeof chars !== "string") chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
+    if (typeof length !== "number") length = 64;
+    
+    var charsLength = chars.length;
+    
+    var token = "";
+    for (var i = 0; i < length; i++) {
+      token += chars[getRandomInt(0, charsLength)];
+    }
+    
+    return token;
+  }
+  
+  function escapeECMAVariable(key, defaultKey) {
+    key = key.replace(/[^0-9a-zA-Z_\$]/g, "");
+    while (/$[0-9]/g.test(key)) {
+      if (key === "") return defaultKey;
+      key = key.substring(1);
+    }
+    return key;
+  }
+  
+  function buildArgumentList(wrap) {
+    var list = [];
+    var args = Array.prototype.slice.call(arguments, 1);
+    
+    for (var i = 0, len = args.length; i < len; i++) {
+      if (typeof args[i] === "string") {
+        list.push("\"" + args[i].replace(/\\/, "\\\\").replace(/"/g, "\\\"") + "\"");
+      } else if (typeof args[i] === "object") {
+        list.push(JSON.stringify(args[i]));
+      } else {
+        list.push(args[i]);
+      }
+    }
+    if (wrap) {
+      return "(" + list.join(",") + ")";
+    } else {
+      return list.join(",");
+    }
+  }
+  
+  return {
+    bind: bind,
+    each: each,
+    getKeys: getKeys,
+    isArray: isArray,
+    inArray: inArray,
+    indexOf: indexOf,
+    indexOfArray: indexOfArray,
+    getRandomArbitrary: getRandomArbitrary,
+    getRandomInt: getRandomInt,
+    generateToken: generateToken,
+    escapeECMAVariable: escapeECMAVariable,
+    buildArgumentList: buildArgumentList
+  };
+});
+define('UserProxy/CustomEvent',["./utils"], function(utils){
+  function addEventListener(event, listener) {
+    if (!events[event]) {
+      // Creating the array of listeners for event
+      events[event] = [];
+      
+      docListeners[event] = utils.bind(null, eventListener, event, events[event]);
+      
+      // Adding the event listener.
+      window.addEventListener(event, docListeners[event], false);
+    }
+    
+    // Adding listener to array.
+    events[event].push(listener);
+  }
+  
+  function removeEventListener(event, listener) {
+    if (event in events) {
+      for (var i = 0, len = events[event].length; i < len; i++) {
+        if (events[event][i] === listener) {
+          events[event].splice(i, 1);
+          i--; len--;
+        }
+      }
+      if (events[event].length === 0) {
+        window.removeEventListener(event, docListeners[event], false);
+        
+        events[event] = null;
+        docListeners[event] = null;
+      }
+    }
+  }
+  
+  function eventListener(event, listeners, e) {
+    e = e || window.event;
+    
+    // Parse the detail to the original object.
+    var data = JSON.parse(e.detail);
+    
+    if (typeof data.detail === "object" && data.token !== token) {
+      var detail = data.detail;
+      for (var i = 0, len = listeners.length; i < len; i++) {
+        // Call the listener with the event name and the parsed detail.
+        listeners[i](detail);
+      }
+      
+      // Prevent propagation
+      if (e && typeof e.stopPropagation === "function") {
+        e.stopPropagation();
+      }
+    }
+  }
+  
+  function fireEvent(event, detail) {
+    // Creating the event
+    var e = document.createEvent("CustomEvent");
+    e.initCustomEvent(event, true, true, JSON.stringify({ detail: detail, token: token }));
+    
+    // Firing the event
+    document.documentElement.dispatchEvent(e);
+  }
+  
+  var token = utils.generateToken(); // The token is used to identify itself and prevent calling its own listeners.
+  var events = {};
+  var docListeners = {};
+  
+  return {
+    addEventListener: addEventListener,
+    removeEventListener: removeEventListener,
+    fireEvent: fireEvent
+  };
+});
+define('UserProxy/Message',["./utils"], function(utils){
+  function addEventListener(event, listener) {
+    initMessage(); // Init the message event listener if not already initialized.
+    
+    if (!events[event]) events[event] = [];
+    
+    // Bind the event name to the listener as an argument.
+    var boundListener = utils.bind(null, listener, event);
+    
+    // Add the boundListener to the event
+    events[event].push(boundListener);
+  }
+  
+  function fireEvent(event, detail) {
+    window.postMessage(JSON.stringify({ token: token, event: event, detail: detail }), "*");
+  }
+  
+  function messageListener(e) {
+    e = e || window.event;
+    
+    // Parse the detail to the original object.
+    var data = JSON.parse(e.data);
+    
+    // Verify that the retrieved information is correct and that it didn't call itself.
+    if (typeof data.event === "string" && typeof data.detail === "object" && data.token !== token) {
+      
+      // Iterate through every listener for data.event.
+      if (utils.isArray(events[data.event])) {
+        var listeners = events[data.event];
+        
+        var detail = data.detail;
+        for (var i = 0, len = listeners.length; i < len; i++) {
+          listeners(detail);
+        }
+    
+        // Prevent propagation only if everything went well.
+        if (e && typeof e.stopPropagation === "function") {
+          e.stopPropagation();
+        }
+      }
+    }
+  }
+  
+  function initMessage() {
+    if (!messageEventAdded) {
+      // Adding the message event listener.
+      window.addEventListener("message", messageListener, false);
+    }
+  }
+  
+  var messageEventAdded = false;
+  var token = utils.generateToken(); // The token is used to identify itself and prevent calling its own listeners.
+  
+  var events = {};
+  
+  return {
+    addEventListener: addEventListener,
+    fireEvent: fireEvent
+  };
+});
+define('UserProxy/memFunction',["./utils", "./CustomEvent", "./Message", "./support"], function(utils, customEvent, message, support){
+  function parseObject(obj, token, type) {
+    if (typeof obj === "object") {
+      utils.each(obj, function(key, value){
+        if (typeof value === "object") {
+          obj[key] = parseObject(value, token, type);
+        } else if (typeof value === "string") {
+          obj[key] = parseString(value);
+        } else if (typeof value === "function") {
+          var id = cache.push(value) - 1;
+          obj[key] = "${" + token + "/" + type + "/" + id + "}";
+        }
+      });
+    } else if (typeof value === "string") {
+      obj = parseString(obj);
+    } else if (typeof obj === "function") {
+      var id = cache.push(obj) - 1;
+      obj = "${" + token + "/" + type + "/" + id + "}";
+    }
+    return obj;
+  }
+  
+  function parseString(str) {
+    if (/^\$[\\]*\{([0-9a-zA-Z\.\-_\/\\]+)\}$/g.test(str)) {
+      return "$\\" + str.substring(1);
+    }
+    return str;
+  }
+  
+  function restoreString(str, token, type) {
+    if (/^\$\{([0-9a-zA-Z\.\-_]+)\/([0-9a-zA-Z\.\-_]+)\/([0-9]+)\}$/g.test(str)) {
+      var parsed = str.substring(2, str.length - 1).split("/"); // " + token + "/" + type + "/" + id + "
+      var id = parseInt(parsed[2], 10);
+      if (parsed[0] === token && parsed[1] === type) {
+        return cache[id];
+      } else {
+        return utils.bind(null, functionPlaceholder, parsed[0] + "-" + parsed[1], id);
+      }
+    } else if (/^\$[\\]+\{([0-9a-zA-Z\.\-_\/\\]+)\}$/g.test(str)) {
+      return "$" + str.substring(2);
+    }
+    return str;
+  }
+  
+  function restoreObject(obj, token, type) {
+    if (typeof obj === "object") {
+      utils.each(obj, function(key, value){
+        if (typeof value === "object") {
+          obj[key] = restoreObject(value, token, type);
+        } else if (typeof value === "string") {
+          obj[key] = restoreString(value, token, type);
+        } else if (typeof value === "function") {
+          throw Error("Function was found!");
+        }
+      });
+    } else if (typeof value === "string") {
+      return restoreString(value, token, type);
+    } else if (typeof value === "function") {
+      throw Error("Function was found!");
+    }
+    return obj;
+  }
+  
+  function functionPlaceholder(event, id) {
+    var args = Array.prototype.slice.call(arguments, 2);
+    if (support.CustomEvent) {
+      return customEvent.fireEvent(event, { callbackId: id, args: args, mem: true });
+    } else {
+      return message.fireEvent(event, { callbackId: id, args: args, mem: true });
+    }
+  }
+  
+  function getCacheFunction(id) {
+    return cache[id];
+  }
+  
+  var cache = [];
+  
+  return {
+    parseObject: parseObject,
+    restoreObject: restoreObject,
+    getCacheFunction: getCacheFunction
+  };
+});
+define('UserProxy/proxy',["./support", "./CustomEvent", "./Message", "./utils", "./memFunction"], function(support, customEvent, message, utils, mem){
+  function listener(detail) {
+    if (typeof detail.callbackId === "number" && utils.isArray(detail.args) && detail.mem) {
+      var args = mem.restoreObject(detail.args, token, "page");
+      var func = mem.getCacheFunction(detail.callbackId);
+      if (typeof func === "function") {
+        func.apply(null, args);
+      }
+    } else if (typeof detail.callbackId === "number" && utils.isArray(detail.args)) {
+      var args = mem.restoreObject(detail.args, token, "page");
+      if (typeof callbackCache[detail.callbackId] === "function") {
+        callbackCache[detail.callbackId].apply(null, args);
+      }
+    } else {
+      throw Error("Malformed detail!", detail);
+    }
+  }
+  
+  function prepareCall(method, callback) {
+    if (!has(method)) {
+      throw Error(method + " is not a defined function!");
+    }
+    
+    if (typeof callback !== "function") {
+      throw Error("The callback is not a function!");
+    }
+    
+    var id = callbackCache.push(callback) - 1;
+    var args = Array.prototype.slice.call(arguments, 2);
+    
+    return function() {
+      args = args.concat(Array.prototype.slice.call(arguments, 0));
+      
+      args = mem.parseObject(args, token, "page");
+      var detail = {
+        method: method,
+        args: args,
+        id: id
+      };
+      
+      if (support.CustomEvent) {
+        customEvent.fireEvent(token + "-content", detail);
+      } else {
+        message.fireEvent(token + "-content", detail);
+      }
+    };
+  }
+  
+  function call(method, args) {
+    function setCallback(callback) {
+      clearTimeout(timer);
+      if (typeof callback === "function") {
+        detail.id = callbackCache.push(callback) - 1;
+      }
+      execute();
+    }
+    function execute() {
+      if (support.CustomEvent) {
+        customEvent.fireEvent(token + "-content", detail);
+      } else {
+        message.fireEvent(token + "-content", detail);
+      }
+    }
+    args = Array.prototype.slice.call(arguments, 1);
+    
+    if (!has(method)) {
+      throw Error(method + " is not a defined function!");
+    }
+    
+    args = mem.parseObject(args, token, "page");
+    var detail = {
+      method: method,
+      args: args
+    };
+    
+    var timer = setTimeout(execute, 4);
+    
+    return {
+      then: setCallback
+    };
+  }
+  
+  function has(method) {
+    return utils.indexOfArray(method, functions) !== -1;
+  }
+  
+  function getFunction(method) {
+    if (has(method)) {
+      return utils.bind(null, call, method);
+    } else {
+      throw Error(method + " is not defined!");
+    }
+  }
+  
+  function listFunctions() {
+    return JSON.parse(JSON.stringify(functions));
+  }
+  
+  var token = UserProxy_token;
+  var functions = UserProxy_functions;
+  
+  var callbackCache = [];
+  
+  if (support.CustomEvent) {
+    customEvent.addEventListener(token + "-page", listener);
+  } else {
+    message.addEventListener(token + "-page", listener);
+  }
+  
+  return {
+    call: call,
+    prepareCall: prepareCall,
+    getFunction: getFunction,
+    isDefined: has,
+    listFunctions: listFunctions
+  };
+});
+define('xhr/injected',["utils", "UserProxy/proxy"], function(utils, UserProxy){
+  return utils.bind(null, UserProxy.call, "xhr");
+});
+define('xhr',["xhr/injected"], function(xhr){
+  return xhr;
+});
+define('main',["console", "utils", "xhr"], function(con, utils, request){
+  // Let's do some initialization
+});
+
+require(["main"]);
+}());
 }
-!function(){eval("/**\n * @license almond 0.2.9 Copyright (c) 2011-2014, The Dojo Foundation All Rights Reserved.\n * Available via the MIT or new BSD license.\n * see: http://github.com/jrburke/almond for details\n */\n//Going sloppy to avoid 'use strict' string cost, but strict practices should\n//be followed.\n/*jslint sloppy: true */\n/*global setTimeout: false */\n\nvar requirejs, require, define;\n(function (undef) {\n    var main, req, makeMap, handlers,\n        defined = {},\n        waiting = {},\n        config = {},\n        defining = {},\n        hasOwn = Object.prototype.hasOwnProperty,\n        aps = [].slice,\n        jsSuffixRegExp = /\\.js$/;\n\n    function hasProp(obj, prop) {\n        return hasOwn.call(obj, prop);\n    }\n\n    /**\n     * Given a relative module name, like ./something, normalize it to\n     * a real name that can be mapped to a path.\n     * @param {String} name the relative name\n     * @param {String} baseName a real name that the name arg is relative\n     * to.\n     * @returns {String} normalized name\n     */\n    function normalize(name, baseName) {\n        var nameParts, nameSegment, mapValue, foundMap, lastIndex,\n            foundI, foundStarMap, starI, i, j, part,\n            baseParts = baseName && baseName.split(\"/\"),\n            map = config.map,\n            starMap = (map && map['*']) || {};\n\n        //Adjust any relative paths.\n        if (name && name.charAt(0) === \".\") {\n            //If have a base name, try to normalize against it,\n            //otherwise, assume it is a top-level require that will\n            //be relative to baseUrl in the end.\n            if (baseName) {\n                //Convert baseName to array, and lop off the last part,\n                //so that . matches that \"directory\" and not name of the baseName's\n                //module. For instance, baseName of \"one/two/three\", maps to\n                //\"one/two/three.js\", but we want the directory, \"one/two\" for\n                //this normalization.\n                baseParts = baseParts.slice(0, baseParts.length - 1);\n                name = name.split('/');\n                lastIndex = name.length - 1;\n\n                // Node .js allowance:\n                if (config.nodeIdCompat && jsSuffixRegExp.test(name[lastIndex])) {\n                    name[lastIndex] = name[lastIndex].replace(jsSuffixRegExp, '');\n                }\n\n                name = baseParts.concat(name);\n\n                //start trimDots\n                for (i = 0; i < name.length; i += 1) {\n                    part = name[i];\n                    if (part === \".\") {\n                        name.splice(i, 1);\n                        i -= 1;\n                    } else if (part === \"..\") {\n                        if (i === 1 && (name[2] === '..' || name[0] === '..')) {\n                            //End of the line. Keep at least one non-dot\n                            //path segment at the front so it can be mapped\n                            //correctly to disk. Otherwise, there is likely\n                            //no path mapping for a path starting with '..'.\n                            //This can still fail, but catches the most reasonable\n                            //uses of ..\n                            break;\n                        } else if (i > 0) {\n                            name.splice(i - 1, 2);\n                            i -= 2;\n                        }\n                    }\n                }\n                //end trimDots\n\n                name = name.join(\"/\");\n            } else if (name.indexOf('./') === 0) {\n                // No baseName, so this is ID is resolved relative\n                // to baseUrl, pull off the leading dot.\n                name = name.substring(2);\n            }\n        }\n\n        //Apply map config if available.\n        if ((baseParts || starMap) && map) {\n            nameParts = name.split('/');\n\n            for (i = nameParts.length; i > 0; i -= 1) {\n                nameSegment = nameParts.slice(0, i).join(\"/\");\n\n                if (baseParts) {\n                    //Find the longest baseName segment match in the config.\n                    //So, do joins on the biggest to smallest lengths of baseParts.\n                    for (j = baseParts.length; j > 0; j -= 1) {\n                        mapValue = map[baseParts.slice(0, j).join('/')];\n\n                        //baseName segment has  config, find if it has one for\n                        //this name.\n                        if (mapValue) {\n                            mapValue = mapValue[nameSegment];\n                            if (mapValue) {\n                                //Match, update name to the new value.\n                                foundMap = mapValue;\n                                foundI = i;\n                                break;\n                            }\n                        }\n                    }\n                }\n\n                if (foundMap) {\n                    break;\n                }\n\n                //Check for a star map match, but just hold on to it,\n                //if there is a shorter segment match later in a matching\n                //config, then favor over this star map.\n                if (!foundStarMap && starMap && starMap[nameSegment]) {\n                    foundStarMap = starMap[nameSegment];\n                    starI = i;\n                }\n            }\n\n            if (!foundMap && foundStarMap) {\n                foundMap = foundStarMap;\n                foundI = starI;\n            }\n\n            if (foundMap) {\n                nameParts.splice(0, foundI, foundMap);\n                name = nameParts.join('/');\n            }\n        }\n\n        return name;\n    }\n\n    function makeRequire(relName, forceSync) {\n        return function () {\n            //A version of a require function that passes a moduleName\n            //value for items that may need to\n            //look up paths relative to the moduleName\n            return req.apply(undef, aps.call(arguments, 0).concat([relName, forceSync]));\n        };\n    }\n\n    function makeNormalize(relName) {\n        return function (name) {\n            return normalize(name, relName);\n        };\n    }\n\n    function makeLoad(depName) {\n        return function (value) {\n            defined[depName] = value;\n        };\n    }\n\n    function callDep(name) {\n        if (hasProp(waiting, name)) {\n            var args = waiting[name];\n            delete waiting[name];\n            defining[name] = true;\n            main.apply(undef, args);\n        }\n\n        if (!hasProp(defined, name) && !hasProp(defining, name)) {\n            throw new Error('No ' + name);\n        }\n        return defined[name];\n    }\n\n    //Turns a plugin!resource to [plugin, resource]\n    //with the plugin being undefined if the name\n    //did not have a plugin prefix.\n    function splitPrefix(name) {\n        var prefix,\n            index = name ? name.indexOf('!') : -1;\n        if (index > -1) {\n            prefix = name.substring(0, index);\n            name = name.substring(index + 1, name.length);\n        }\n        return [prefix, name];\n    }\n\n    /**\n     * Makes a name map, normalizing the name, and using a plugin\n     * for normalization if necessary. Grabs a ref to plugin\n     * too, as an optimization.\n     */\n    makeMap = function (name, relName) {\n        var plugin,\n            parts = splitPrefix(name),\n            prefix = parts[0];\n\n        name = parts[1];\n\n        if (prefix) {\n            prefix = normalize(prefix, relName);\n            plugin = callDep(prefix);\n        }\n\n        //Normalize according\n        if (prefix) {\n            if (plugin && plugin.normalize) {\n                name = plugin.normalize(name, makeNormalize(relName));\n            } else {\n                name = normalize(name, relName);\n            }\n        } else {\n            name = normalize(name, relName);\n            parts = splitPrefix(name);\n            prefix = parts[0];\n            name = parts[1];\n            if (prefix) {\n                plugin = callDep(prefix);\n            }\n        }\n\n        //Using ridiculous property names for space reasons\n        return {\n            f: prefix ? prefix + '!' + name : name, //fullName\n            n: name,\n            pr: prefix,\n            p: plugin\n        };\n    };\n\n    function makeConfig(name) {\n        return function () {\n            return (config && config.config && config.config[name]) || {};\n        };\n    }\n\n    handlers = {\n        require: function (name) {\n            return makeRequire(name);\n        },\n        exports: function (name) {\n            var e = defined[name];\n            if (typeof e !== 'undefined') {\n                return e;\n            } else {\n                return (defined[name] = {});\n            }\n        },\n        module: function (name) {\n            return {\n                id: name,\n                uri: '',\n                exports: defined[name],\n                config: makeConfig(name)\n            };\n        }\n    };\n\n    main = function (name, deps, callback, relName) {\n        var cjsModule, depName, ret, map, i,\n            args = [],\n            callbackType = typeof callback,\n            usingExports;\n\n        //Use name if no relName\n        relName = relName || name;\n\n        //Call the callback to define the module, if necessary.\n        if (callbackType === 'undefined' || callbackType === 'function') {\n            //Pull out the defined dependencies and pass the ordered\n            //values to the callback.\n            //Default to [require, exports, module] if no deps\n            deps = !deps.length && callback.length ? ['require', 'exports', 'module'] : deps;\n            for (i = 0; i < deps.length; i += 1) {\n                map = makeMap(deps[i], relName);\n                depName = map.f;\n\n                //Fast path CommonJS standard dependencies.\n                if (depName === \"require\") {\n                    args[i] = handlers.require(name);\n                } else if (depName === \"exports\") {\n                    //CommonJS module spec 1.1\n                    args[i] = handlers.exports(name);\n                    usingExports = true;\n                } else if (depName === \"module\") {\n                    //CommonJS module spec 1.1\n                    cjsModule = args[i] = handlers.module(name);\n                } else if (hasProp(defined, depName) ||\n                           hasProp(waiting, depName) ||\n                           hasProp(defining, depName)) {\n                    args[i] = callDep(depName);\n                } else if (map.p) {\n                    map.p.load(map.n, makeRequire(relName, true), makeLoad(depName), {});\n                    args[i] = defined[depName];\n                } else {\n                    throw new Error(name + ' missing ' + depName);\n                }\n            }\n\n            ret = callback ? callback.apply(defined[name], args) : undefined;\n\n            if (name) {\n                //If setting exports via \"module\" is in play,\n                //favor that over return value and exports. After that,\n                //favor a non-undefined return value over exports use.\n                if (cjsModule && cjsModule.exports !== undef &&\n                        cjsModule.exports !== defined[name]) {\n                    defined[name] = cjsModule.exports;\n                } else if (ret !== undef || !usingExports) {\n                    //Use the return value from the function.\n                    defined[name] = ret;\n                }\n            }\n        } else if (name) {\n            //May just be an object definition for the module. Only\n            //worry about defining if have a module name.\n            defined[name] = callback;\n        }\n    };\n\n    requirejs = require = req = function (deps, callback, relName, forceSync, alt) {\n        if (typeof deps === \"string\") {\n            if (handlers[deps]) {\n                //callback in this case is really relName\n                return handlers[deps](callback);\n            }\n            //Just return the module wanted. In this scenario, the\n            //deps arg is the module name, and second arg (if passed)\n            //is just the relName.\n            //Normalize module name, if it contains . or ..\n            return callDep(makeMap(deps, callback).f);\n        } else if (!deps.splice) {\n            //deps is a config object, not an array.\n            config = deps;\n            if (config.deps) {\n                req(config.deps, config.callback);\n            }\n            if (!callback) {\n                return;\n            }\n\n            if (callback.splice) {\n                //callback is an array, which means it is a dependency list.\n                //Adjust args if there are dependencies\n                deps = callback;\n                callback = relName;\n                relName = null;\n            } else {\n                deps = undef;\n            }\n        }\n\n        //Support require(['a'])\n        callback = callback || function () {};\n\n        //If relName is a function, it is an errback handler,\n        //so remove it.\n        if (typeof relName === 'function') {\n            relName = forceSync;\n            forceSync = alt;\n        }\n\n        //Simulate async callback;\n        if (forceSync) {\n            main(undef, deps, callback, relName);\n        } else {\n            //Using a non-zero value because of concern for what old browsers\n            //do, and latest browsers \"upgrade\" to 4 if lower value is used:\n            //http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#dom-windowtimers-settimeout:\n            //If want a value immediately, use require('id') instead -- something\n            //that works in almond on the global level, but not guaranteed and\n            //unlikely to work in other AMD implementations.\n            setTimeout(function () {\n                main(undef, deps, callback, relName);\n            }, 4);\n        }\n\n        return req;\n    };\n\n    /**\n     * Just drops the config on the floor, but returns req in case\n     * the config return value is used.\n     */\n    req.config = function (cfg) {\n        return req(cfg);\n    };\n\n    /**\n     * Expose module registry for debugging and tooling\n     */\n    requirejs._defined = defined;\n\n    define = function (name, deps, callback) {\n\n        //This module may not have dependencies\n        if (!deps.splice) {\n            //deps is not an array, so probably means\n            //an object literal or factory function for\n            //the value. Adjust args.\n            callback = deps;\n            deps = [];\n        }\n\n        if (!hasProp(defined, name) && !hasProp(waiting, name)) {\n            waiting[name] = [name, deps, callback];\n        }\n    };\n\n    define.amd = {\n        jQuery: true\n    };\n}());\n\n//# sourceURL=/../vendor/almond.js"),define("../vendor/almond",function(){}),eval('define(\'utils\',[],function(){\r\n  function each(obj, callback) {\r\n    if (isArray(obj)) {\r\n      for (var i = 0; i < obj.length; i++) {\r\n        if (callback(i, obj[i]) === true) break;\r\n      }\r\n    } else {\r\n      for (var key in obj) {\r\n        if (obj.hasOwnProperty(key)) {\r\n          if (callback(key, obj[key]) === true) break;\r\n        }\r\n      }\r\n    }\r\n  }\r\n  \r\n  function isArray(arr) {\r\n    return Object.prototype.toString.call(arr) === "[object Array]";\r\n  }\r\n  \r\n  function asyncCall(scope, callback) {\r\n    return setTimeout(bind.apply(null, [scope, callback].concat(Array.prototype.slice.call(arguments, 2))), 0);\r\n  }\r\n  \r\n  function bind(scope, func) {\r\n    var args = Array.prototype.slice.call(arguments, 2);\r\n    return function(){\r\n      return func.apply(scope, args.concat(Array.prototype.slice.call(arguments)))\r\n    };\r\n  }\r\n  function trimLeft(obj){\r\n    return obj.replace(/^\\s+/, "");\r\n  }\r\n  function trimRight(obj){\r\n    return obj.replace(/\\s+$/, "");\r\n  }\r\n  function map(obj, callback, thisArg) {\r\n    for (var i = 0, n = obj.length, a = []; i < n; i++) {\r\n      if (i in obj) a[i] = callback.call(thisArg, obj[i]);\r\n    }\r\n    return a;\r\n  }\r\n  \r\n  function defineLockedProperty(obj, key, setter, getter) {\r\n    if (typeof obj !== "object") obj = {};\r\n    if (ie || typeof Object.defineProperty === "function") {\r\n      Object.defineProperty(obj, key, {\r\n        get: getter,\r\n        set: setter\r\n      });\r\n      return obj;\r\n    } else {\r\n      obj.__defineGetter__(key, getter);\r\n      obj.__defineSetter__(key, setter);\r\n      return obj;\r\n    }\r\n  }\r\n  \r\n  function addEventListener(elm, event, callback, useCapture) {\r\n    if (elm.addEventListener) {\r\n      elm.addEventListener(event, callback, useCapture || false);\r\n    } else if (elm.attachEvent) {\r\n      elm.attachEvent("on" + event, callback);\r\n    }\r\n  }\r\n  \r\n  function removeEventListener(elm, event, callback, useCapture) {\r\n    if (elm.removeEventListener) {\r\n      elm.removeEventListener(event, callback, useCapture || false);\r\n    } else if (elm.detachEvent) {\r\n      elm.detachEvent("on" + event, callback);\r\n    }\r\n  }\r\n  \r\n  var ie = (function(){\r\n    for (var v = 3, el = document.createElement(\'b\'), all = el.all || []; el.innerHTML = \'<!--[if gt IE \' + (++v) + \']><i><![endif]-->\', all[0];);\r\n    return v > 4 ? v : !!document.documentMode;\r\n  }());\r\n  \r\n  var now = Date.now || function () {\r\n    return +new Date;\r\n  };\r\n  \r\n  /* Cookies */\r\n  function setCookie(name, value, domain, path, expires) {\r\n    domain = domain ? ";domain=" + encodeURIComponent(domain) : "";\r\n    path = path ? ";path=" + encodeURIComponent(path) : "";\r\n    expires = 0 > expires ? "" : 0 == expires ? ";expires=" + (new Date(1970, 1, 1)).toUTCString() : ";expires=" + (new Date(now() + 1E3 * expires)).toUTCString();\r\n    \r\n    document.cookie = encodeURIComponent(name) + "=" + encodeURIComponent(value) + domain + path + expires;\r\n  }\r\n  \r\n  function getCookie(key) {\r\n    return getCookies()[key];\r\n  }\r\n  \r\n  function getCookies() {\r\n    var c = document.cookie, v = 0, cookies = {};\r\n    if (document.cookie.match(/^\\s*\\$Version=(?:"1"|1);\\s*(.*)/)) {\r\n      c = RegExp.$1;\r\n      v = 1;\r\n    }\r\n    if (v === 0) {\r\n      map(c.split(/[,;]/), function(cookie) {\r\n        var parts = cookie.split(/=/, 2),\r\n            name = decodeURIComponent(trimLeft(parts[0])),\r\n            value = parts.length > 1 ? decodeURIComponent(trimRight(parts[1])) : null;\r\n        cookies[name] = value;\r\n      });\r\n    } else {\r\n      map(c.match(/(?:^|\\s+)([!#$%&\'*+\\-.0-9A-Z^`a-z|~]+)=([!#$%&\'*+\\-.0-9A-Z^`a-z|~]*|"(?:[\\x20-\\x7E\\x80\\xFF]|\\\\[\\x00-\\x7F])*")(?=\\s*[,;]|$)/g), function($0, $1) {\r\n        var name = $0, value = $1.charAt(0) === \'"\' ? $1.substr(1, -1).replace(/\\\\(.)/g, "$1") : $1;\r\n        cookies[name] = value;\r\n      });\r\n    }\r\n    return cookies;\r\n  }\r\n  \r\n  function endsWith(str, suffix) {\r\n    return str.indexOf(suffix, str.length - suffix.length) !== -1;\r\n  }\r\n  \r\n  function inject(func) {\r\n    var script = document.createElement("script"),\r\n        p = (document.body || document.head || document.documentElement);\r\n    if (!p) {\r\n      throw "Could not inject!!!";\r\n    }\r\n    script.setAttribute("type", "text/javascript");\r\n    script.appendChild(document.createTextNode("(" + func + ")(" + buildArgumentList.apply(null, [false].concat(Array.prototype.slice.call(arguments, 1))) + ");"));\r\n    p.appendChild(script);\r\n    p.removeChild(script);\r\n  }\r\n  \r\n  function buildArgumentList(wrap) {\r\n    var list = [];\r\n    var args = Array.prototype.slice.call(arguments, 1);\r\n    \r\n    for (var i = 0, len = args.length; i < len; i++) {\r\n      if (typeof args[i] === "string") {\r\n        list.push("\\"" + args[i].replace(/\\\\/, "\\\\\\\\").replace(/"/g, "\\\\\\"") + "\\"");\r\n      } else if (typeof args[i] === "object") {\r\n        list.push(JSON.stringify(args[i]));\r\n      } else {\r\n        list.push(args[i]);\r\n      }\r\n    }\r\n    if (wrap) {\r\n      return "(" + list.join(",") + ")";\r\n    } else {\r\n      return list.join(",");\r\n    }\r\n  }\r\n  \r\n  function isJSONString(json) {\r\n    try {\r\n      JSON.parse(json);\r\n    } catch (e) {\r\n      return false;\r\n    }\r\n    return true;\r\n  }\r\n  \r\n  function xhr(details) {\r\n    var xmlhttp;\r\n    if (typeof XMLHttpRequest !== "undefined") {\r\n      xmlhttp = new XMLHttpRequest();\r\n    } else if (typeof opera !== "undefined" && typeof opera.XMLHttpRequest !== "undefined") {\r\n      xmlhttp = new opera.XMLHttpRequest();\r\n    } else {\r\n      if (details["onerror"]) {\r\n        details["onerror"]();\r\n      }\r\n      \r\n      return;\r\n    }\r\n    xmlhttp.onreadystatechange = function(){\r\n      var responseState = {\r\n        responseXML:(xmlhttp.readyState == 4 ? xmlhttp.responseXML : \'\'),\r\n        responseText:(xmlhttp.readyState == 4 ? xmlhttp.responseText : \'\'),\r\n        readyState:xmlhttp.readyState,\r\n        responseHeaders:(xmlhttp.readyState == 4 ? xmlhttp.getAllResponseHeaders() : \'\'),\r\n        status:(xmlhttp.readyState == 4 ? xmlhttp.status : 0),\r\n        statusText:(xmlhttp.readyState == 4 ? xmlhttp.statusText : \'\'),\r\n        finalUrl:(xmlhttp.readyState == 4 ? xmlhttp.finalUrl : \'\')\r\n      };\r\n      if (details["onreadystatechange"]) {\r\n        details["onreadystatechange"](responseState);\r\n      }\r\n      if (xmlhttp.readyState == 4) {\r\n        if (details["onload"] && xmlhttp.status >= 200 && xmlhttp.status < 300) {\r\n          details["onload"](responseState);\r\n        }\r\n        if (details["onerror"] && (xmlhttp.status < 200 || xmlhttp.status >= 300)) {\r\n          details["onerror"](responseState);\r\n        }\r\n      }\r\n    };\r\n    try {\r\n      xmlhttp.open(details.method, details.url);\r\n    } catch(e) {\r\n      if(details["onerror"]) {\r\n        details["onerror"]({responseXML:\'\',responseText:\'\',readyState:4,responseHeaders:\'\',status:403,statusText:\'Forbidden\'});\r\n      }\r\n      return;\r\n    }\r\n    if (details.headers) {\r\n      for (var prop in details.headers) {\r\n        xmlhttp.setRequestHeader(prop, details.headers[prop]);\r\n      }\r\n    }\r\n    xmlhttp.send((typeof(details.data) != \'undefined\') ? details.data : null);\r\n  }\r\n  \r\n  // Used for the message module (should probably move to another place)\r\n  // It replaces a property in the obj to a predefined function, where the arguments will be callbackId, target, referer\r\n  function bindFunctionCallbacks(obj, func, target, referer) {\r\n    for (key in obj) {\r\n      if (obj.hasOwnProperty(key)) {\r\n        if (typeof obj[key] === "obj") {\r\n          bindFunctionCallbacks(obj[key]);\r\n        } else if (typeof obj[key] === "string") {\r\n          if (obj[key].indexOf("@/(message.callback)/") === 0) {\r\n            var callbackId = obj[key].split("@/(message.callback)/")[1];\r\n            obj[key] = bind(null, func, callbackId, target, referer);\r\n          }\r\n        }\r\n      }\r\n    }\r\n  }\r\n  \r\n  // Merge two objects, where the override object will be overwritting the base object.\r\n  function merge(base, override) {\r\n    for (var key in override) {\r\n      if (override.hasOwnProperty(key)) {\r\n        if (typeof override[key] === "object") {\r\n          if (typeof base[key] !== "object") {\r\n            base[key] = override[key];\r\n          } else {\r\n            base[key] = merge(base[key], override[key]);\r\n          }\r\n        } else {\r\n          base[key] = override[key];\r\n        }\r\n      }\r\n    }\r\n    return base;\r\n  }\r\n  \r\n  function inArray(key, arr) {\r\n    for (var i = 0, len = arr.length; i < len; i++) {\r\n      if (arr[i] === key) {\r\n        return true;\r\n      }\r\n    }\r\n    return false;\r\n  }\r\n  \r\n  function listClasses(el) {\r\n    return el.className.split(" ");\r\n  }\r\n  \r\n  function addClass(el, className) {\r\n    var classes = listClasses(el);\r\n    var addList = className.split(" ");\r\n    \r\n    for (var i = 0, len = addList.length; i < len; i++) {\r\n      if (!inArray(addList[i], classes)) {\r\n        el.className += " " + addList[i];\r\n      }\r\n    }\r\n    return el.className;\r\n  }\r\n  \r\n  function removeClass(el, className) {\r\n    var classes = listClasses(el);\r\n    var removeList = className.split(" ");\r\n    \r\n    var buffer = [];\r\n    for (var i = 0, len = classes.length; i < len; i++) {\r\n      if (!inArray(classes[i], removeList)) {\r\n        buffer.push(classes[i]);\r\n      }\r\n    }\r\n    return el.className = buffer.join(" ");\r\n  }\r\n  \r\n  function hasClass(el, className) {\r\n    return inArray(className, listClasses(el));\r\n  }\r\n  \r\n  function throttle(func, delay, options){\r\n    function timeout() {\r\n      previous = options.leading === false ? 0 : new Date;\r\n      timer = null;\r\n      result = func.apply(context, args);\r\n    }\r\n    var context, args, result, timer = null, previous = 0;\r\n    options = options || {};\r\n    return function(){\r\n      var now = new Date, dt;\r\n      \r\n      context = this;\r\n      args = arguments;\r\n      \r\n      if (!previous && options.leading === false) previous = now;\r\n      dt = delay - (now - previous);\r\n      \r\n      if (dt <= 0) {\r\n        clearTimeout(timer);\r\n        timer = null;\r\n        previous = now;\r\n        result = func.apply(context, args);\r\n      } else if (!timer && options.trailing !== false) {\r\n        timer = setTimeout(timeout, dt);\r\n      }\r\n      return result;\r\n    };\r\n  }\r\n  \r\n  return {\r\n    hasClass: hasClass,\r\n    removeClass: removeClass,\r\n    addClass: addClass,\r\n    each: each,\r\n    isArray: isArray,\r\n    bind: bind,\r\n    asyncCall: asyncCall,\r\n    defineLockedProperty: defineLockedProperty,\r\n    ie: ie,\r\n    addEventListener: addEventListener,\r\n    removeEventListener: removeEventListener,\r\n    now: now,\r\n    trimLeft: trimLeft,\r\n    trimRight: trimRight,\r\n    map: map,\r\n    setCookie: setCookie,\r\n    getCookie: getCookie,\r\n    getCookies: getCookies,\r\n    endsWith: endsWith,\r\n    inject: inject,\r\n    isJSONString: isJSONString,\r\n    xhr: xhr,\r\n    buildArgumentList: buildArgumentList,\r\n    bindFunctionCallbacks: bindFunctionCallbacks,\r\n    merge: merge,\r\n    throttle: throttle\r\n  };\r\n});\n//# sourceURL=/utils.js'),eval('define(\'support\',[], function(){\r\n  function localStorageTest() {\r\n    var mod = "support.test";\r\n    try {\r\n      localStorage.setItem(mod, mod);\r\n      localStorage.removeItem(mod);\r\n      return true;\r\n    } catch (e) {\r\n      return false;\r\n    }\r\n  }\r\n  \r\n  return {\r\n    localStorage: localStorageTest(),\r\n    Greasemonkey: (typeof GM_setValue !== "undefined" && (typeof GM_setValue.toString === "undefined" || GM_setValue.toString().indexOf("not supported") === -1))\r\n  };\r\n});\n//# sourceURL=/support.js'),eval("define('storage/localStorage',[\"utils\"], function(utils){\r\n  function getItem(key, callback) {\r\n    utils.asyncCall(null, callback, localStorage.getItem(key));\r\n  }\r\n  return {\r\n    setItem: utils.bind(localStorage, localStorage.setItem),\r\n    getItem: getItem,\r\n    removeItem: utils.bind(localStorage, localStorage.removeItem)\r\n  };\r\n});\n//# sourceURL=/storage/localStorage.js"),eval('define(\'storage/cookies\',["utils"], function(utils){\r\n  function setItem(key, value) {\r\n    utils.setCookie(prefix + key, value, null, "/", 1000*24*60*60*1000);\r\n  }\r\n  \r\n  function getItem(key) {\r\n    return utils.getCookie(prefix + key);\r\n  }\r\n  \r\n  function removeItem(key) {\r\n    utils.setCookie(prefix + key, "", null, "/", 0);\r\n  }\r\n  \r\n  var prefix = "ytcenter.";\r\n  \r\n  return {\r\n    setItem: setItem,\r\n    getItem: getItem,\r\n    removeItem: removeItem\r\n  };\r\n});\n//# sourceURL=/storage/cookies.js'),eval('define(\'storage/browser\',["support", "storage/localStorage", "storage/cookies"], function(support, localStorage, cookies){\r\n  if (support.localStorage) {\r\n    return localStorage;\r\n  } else {\r\n    return cookies;\r\n  }\r\n});\n//# sourceURL=/storage/browser.js'),eval('define(\'storage/userscript\',["support", "storage/browser", "utils"], function(support, sBrowser, utils){\r\n  function setItem(key, value) {\r\n    GM_setValue(key, value);\r\n  }\r\n  \r\n  function getItem(key, callback) {\r\n    utils.asyncCall(null, callback, GM_getValue(key));\r\n  }\r\n  \r\n  function removeItem(key) {\r\n    GM_deleteValue(key);\r\n  }\r\n  \r\n  if (support.Greasemonkey) {\r\n    return {\r\n      setItem: setItem,\r\n      removeItem: removeItem,\r\n      getItem: getItem\r\n    };\r\n  } else {\r\n    return sBrowser;\r\n  }\r\n});\n//# sourceURL=/storage/userscript.js'),eval('define(\'storage\',["storage/userscript", "utils"], function(storageHandler, utils){\r\n  function setItem(key, value) {\r\n    cache[key] = value;\r\n    storageHandler.setItem(key, value);\r\n  }\r\n  \r\n  function removeItem(key) {\r\n    delete cache[key];\r\n    storageHandler.removeItem(key);\r\n  }\r\n  \r\n  function getItemCallback(callback, value) {\r\n    cache[key] = value;\r\n    callback(cache[key]);\r\n  }\r\n  \r\n  function getItem(key, callback) {\r\n    if (!(key in cache)) {\r\n      storageHandler.getItem(key, utils.bind(getItemCallback, callback));\r\n    } else {\r\n      utils.asyncCall(null, callback, cache[key]);\r\n    }\r\n  }\r\n  \r\n  var cache = {};\r\n  \r\n  return {\r\n    setItem: setItem,\r\n    removeItem: removeItem,\r\n    getItem: getItem\r\n  };\r\n});\n//# sourceURL=/storage.js'),eval("define('unsafeWindow',[], function(){\r\n  return window;\r\n});\n//# sourceURL=/unsafeWindow.js"),eval('define(\'url\',["unsafeWindow", "utils"], function(unsafeWindow, utils){\r\n  // Get the YouTube page type: watch, channel, embed, ...\r\n  function getPage() {\r\n    var domain = getDomain();\r\n    var path = getPath();\r\n    \r\n    if (utils.endsWith(domain, "youtube.com")) {\r\n      if (path.indexOf("/watch?") === 0) {\r\n        return "watch";\r\n      } else if (path === "/" || path === "/feed/what_to_watch") {\r\n        return "feed_what_to_watch";\r\n      } else if (path.indexOf("/embed/") === 0 || path.indexOf("/watch_popup?") === 0) {\r\n        return "embed";\r\n      } else if (path.indexOf("/results") === 0) {\r\n        return "search";\r\n      }\r\n    } else if (utils.endsWith(domain, "api.google.com") || utils.endsWith(domain, "plus.googleapis.com")) {\r\n      if (path.indexOf("/widget/render/comments?") !== -1) {\r\n        return "comments";\r\n      }\r\n    }\r\n    return "unknown";\r\n  }\r\n  \r\n  // Get the url domain: www.example.com\r\n  function getDomain() {\r\n    var loc = getLocation();\r\n    if (loc.hostname) {\r\n      return loc.hostname;\r\n    } else {\r\n      return /^.*?:\\/\\/(.*?)\\/.*$/.exec(loc.href)[1];\r\n    }\r\n  }\r\n  \r\n  // Get the url path: /example/path\r\n  function getPath() {\r\n    var loc = getLocation();\r\n    if (loc.pathname) {\r\n      return loc.pathname;\r\n    } else {\r\n      return /^.*?:\\/\\/.*?(\\/.*)$/.exec(loc.href)[1];\r\n    }\r\n  }\r\n  \r\n  // Get the url path: /example/path\r\n  function getProtocol() {\r\n    var loc = getLocation();\r\n    if (loc.protocol) {\r\n      return loc.protocol;\r\n    } else {\r\n      return /^(.*?:)\\/\\//.exec(loc.href)[1];\r\n    }\r\n  }\r\n  \r\n  // Get the location object provided by the window object.\r\n  function getLocation() {\r\n    return location || window.location || unsafeWindow.location;\r\n  }\r\n  \r\n  return {\r\n    location: getLocation(),\r\n    getProtocol: getProtocol,\r\n    getDomain: getDomain,\r\n    getPath: getPath,\r\n    getPage: getPage,\r\n    page: getPage()\r\n  };\r\n});\n//# sourceURL=/url.js'),eval('define(\'console\',["utils"], function(utils){\r\n  function setEnabled(b) {\r\n    enabled = b;\r\n  }\r\n  \r\n  function log() {\r\n    if (!enabled) return function(){};\r\n    return console.log.bind(console, "userscript");\r\n  }\r\n  \r\n  function error() {\r\n    if (!enabled) return function(){};\r\n    return console.error.bind(console, "userscript");\r\n  }\r\n  \r\n  function warn() {\r\n    if (!enabled) return function(){};\r\n    return console.warn.bind(console, "userscript");\r\n  }\r\n  \r\n  var enabled = true;\r\n  \r\n  var retObj = {};\r\n  utils.defineLockedProperty(retObj, "log", function(){}, log);\r\n  utils.defineLockedProperty(retObj, "error", function(){}, error);\r\n  utils.defineLockedProperty(retObj, "warn", function(){}, warn);\r\n  \r\n  return retObj;\r\n});\n//# sourceURL=/console.js'),eval('// TODO  Add easy function calling.\r\ndefine(\'message\',["utils", "support", "storage", "url", "console"], function(utils, support, storage, url, con){\r\n  function sendMessage(data) {\r\n    data.referer = referer_;\r\n    if (typeof data.originalReferer !== "number") data.originalReferer = referer_;\r\n    if (data.target === 0 || data.target === 1 || (referer_ === 0 && data.target === 2)) {\r\n      window.postMessage(JSON.stringify(data), url.getProtocol() + "//" + document.domain);\r\n    } else if (data.target === 2) {\r\n      // Specific addon function\r\n      throw "Not implemented yet!";\r\n    }\r\n  }\r\n\r\n  function isOriginAllowed(origin) {\r\n    if (origin.indexOf("://") !== -1) {\r\n      var originParts = origin.split("://");\r\n      \r\n      var protocol = originParts[0];\r\n      var domain = originParts[1];\r\n      \r\n      if (protocols.indexOf(protocol) === -1) return false;\r\n      if (domains.indexOf(domain) === -1) return false;\r\n      \r\n      return true;\r\n    }\r\n    return false;\r\n  }\r\n  function callbackFunction(callbackId, target, referer) {\r\n    sendMessage({\r\n      target: target,\r\n      type: "callback",\r\n      args: [callbackId].concat(Array.prototype.slice.call(arguments, 3))\r\n    });\r\n  }\r\n\r\n  function handleCommand(data) {\r\n    var callbackId = parseInt(data.callbackId || "-1", 10);\r\n    var args = [];\r\n    \r\n    switch(data.type) {\r\n      case "callback":\r\n        con.log(data);\r\n        throw "Not implemented yet!";\r\n        break;\r\n      case "xhr":\r\n        var details = data.args[0];\r\n        bindFunctionCallbacks(details, callbackFunction, 0, 1);\r\n        \r\n        if (support.Greasemonkey) {\r\n          GM_xmlhttpRequest(details);\r\n        } else {\r\n          utils.xhr(details);\r\n        }\r\n        break;\r\n      case "storage.setItem":\r\n        var key = data.args[0];\r\n        var value = data.args[1];\r\n        storage.setItem(key, value);\r\n        \r\n        args.push(key);\r\n        break;\r\n      case "storage.getItem":\r\n        var value = storage.getItem(data.args[0]);\r\n        \r\n        args.push(data.args[0]);\r\n        args.push(value);\r\n        break;\r\n      case "storage.removeItem":\r\n        storage.removeItem(data.args[0], data.args[1]);\r\n        \r\n        args.push(data.args[0]);\r\n        break;\r\n    }\r\n    \r\n    if (callbackId > -1) {\r\n      sendMessage({\r\n        target: data.originalReferer,\r\n        type: "callback",\r\n        args: [callbackId].concat(args)\r\n      });\r\n    }\r\n  }\r\n\r\n  function handleIncomingMessages(e) {\r\n    e = e || window.event;\r\n    if (!isOriginAllowed(e.origin)) return;\r\n    \r\n    var data;\r\n    \r\n    if (utils.isJSONString(e.data)) {\r\n      data = JSON.parse(e.data);\r\n      if (data.referer !== referer_ && typeof data.type === "string") {\r\n        if (data.target !== referer_) {\r\n          // Resend this message to the page or the addon.\r\n          data.referer = referer_;\r\n          sendMessage(data);\r\n        } else {\r\n          // Correct target.\r\n          handleCommand(data)\r\n        }\r\n      }\r\n    }\r\n  }\r\n  \r\n  function init(ref, prot, dom) {\r\n    referer_ = ref;\r\n    protocols = prot;\r\n    domains = dom;\r\n\r\n    // Init the message listeners\r\n    window.addEventListener("message", handleIncomingMessages, false);\r\n  }\r\n  \r\n  var referer_ = -1;\r\n  \r\n  var callbackListeners = [];\r\n\r\n  var protocols = [];\r\n  var domains = [];\r\n  \r\n  return {\r\n    init: init,\r\n    sendMessage: sendMessage\r\n  };\r\n});\n//# sourceURL=/message.js'),eval('define(\'main.sandbox\',["utils", "storage", "message"], function(utils, storage, message){\r\n  message.init(1, ["http", "https"], ["youtube.com", "www.youtube.com", "api.google.com", "plus.googleapis.com"]);\r\n  \r\n  storage.getItem("YouTubeCenterSettings", function(value){\r\n    var settings = JSON.parse(value || "{}");\r\n    \r\n    utils.inject(mainPage, settings); /* mainPage is injected by Grunt */\r\n  });\r\n});\n//# sourceURL=/main.sandbox.js'),require(["main.sandbox"])
-}();
-//# sourceMappingURL=main.sandbox.min.js.map
+(function () {/**
+ * @license almond 0.2.9 Copyright (c) 2011-2014, The Dojo Foundation All Rights Reserved.
+ * Available via the MIT or new BSD license.
+ * see: http://github.com/jrburke/almond for details
+ */
+//Going sloppy to avoid 'use strict' string cost, but strict practices should
+//be followed.
+/*jslint sloppy: true */
+/*global setTimeout: false */
+
+var requirejs, require, define;
+(function (undef) {
+    var main, req, makeMap, handlers,
+        defined = {},
+        waiting = {},
+        config = {},
+        defining = {},
+        hasOwn = Object.prototype.hasOwnProperty,
+        aps = [].slice,
+        jsSuffixRegExp = /\.js$/;
+
+    function hasProp(obj, prop) {
+        return hasOwn.call(obj, prop);
+    }
+
+    /**
+     * Given a relative module name, like ./something, normalize it to
+     * a real name that can be mapped to a path.
+     * @param {String} name the relative name
+     * @param {String} baseName a real name that the name arg is relative
+     * to.
+     * @returns {String} normalized name
+     */
+    function normalize(name, baseName) {
+        var nameParts, nameSegment, mapValue, foundMap, lastIndex,
+            foundI, foundStarMap, starI, i, j, part,
+            baseParts = baseName && baseName.split("/"),
+            map = config.map,
+            starMap = (map && map['*']) || {};
+
+        //Adjust any relative paths.
+        if (name && name.charAt(0) === ".") {
+            //If have a base name, try to normalize against it,
+            //otherwise, assume it is a top-level require that will
+            //be relative to baseUrl in the end.
+            if (baseName) {
+                //Convert baseName to array, and lop off the last part,
+                //so that . matches that "directory" and not name of the baseName's
+                //module. For instance, baseName of "one/two/three", maps to
+                //"one/two/three.js", but we want the directory, "one/two" for
+                //this normalization.
+                baseParts = baseParts.slice(0, baseParts.length - 1);
+                name = name.split('/');
+                lastIndex = name.length - 1;
+
+                // Node .js allowance:
+                if (config.nodeIdCompat && jsSuffixRegExp.test(name[lastIndex])) {
+                    name[lastIndex] = name[lastIndex].replace(jsSuffixRegExp, '');
+                }
+
+                name = baseParts.concat(name);
+
+                //start trimDots
+                for (i = 0; i < name.length; i += 1) {
+                    part = name[i];
+                    if (part === ".") {
+                        name.splice(i, 1);
+                        i -= 1;
+                    } else if (part === "..") {
+                        if (i === 1 && (name[2] === '..' || name[0] === '..')) {
+                            //End of the line. Keep at least one non-dot
+                            //path segment at the front so it can be mapped
+                            //correctly to disk. Otherwise, there is likely
+                            //no path mapping for a path starting with '..'.
+                            //This can still fail, but catches the most reasonable
+                            //uses of ..
+                            break;
+                        } else if (i > 0) {
+                            name.splice(i - 1, 2);
+                            i -= 2;
+                        }
+                    }
+                }
+                //end trimDots
+
+                name = name.join("/");
+            } else if (name.indexOf('./') === 0) {
+                // No baseName, so this is ID is resolved relative
+                // to baseUrl, pull off the leading dot.
+                name = name.substring(2);
+            }
+        }
+
+        //Apply map config if available.
+        if ((baseParts || starMap) && map) {
+            nameParts = name.split('/');
+
+            for (i = nameParts.length; i > 0; i -= 1) {
+                nameSegment = nameParts.slice(0, i).join("/");
+
+                if (baseParts) {
+                    //Find the longest baseName segment match in the config.
+                    //So, do joins on the biggest to smallest lengths of baseParts.
+                    for (j = baseParts.length; j > 0; j -= 1) {
+                        mapValue = map[baseParts.slice(0, j).join('/')];
+
+                        //baseName segment has  config, find if it has one for
+                        //this name.
+                        if (mapValue) {
+                            mapValue = mapValue[nameSegment];
+                            if (mapValue) {
+                                //Match, update name to the new value.
+                                foundMap = mapValue;
+                                foundI = i;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (foundMap) {
+                    break;
+                }
+
+                //Check for a star map match, but just hold on to it,
+                //if there is a shorter segment match later in a matching
+                //config, then favor over this star map.
+                if (!foundStarMap && starMap && starMap[nameSegment]) {
+                    foundStarMap = starMap[nameSegment];
+                    starI = i;
+                }
+            }
+
+            if (!foundMap && foundStarMap) {
+                foundMap = foundStarMap;
+                foundI = starI;
+            }
+
+            if (foundMap) {
+                nameParts.splice(0, foundI, foundMap);
+                name = nameParts.join('/');
+            }
+        }
+
+        return name;
+    }
+
+    function makeRequire(relName, forceSync) {
+        return function () {
+            //A version of a require function that passes a moduleName
+            //value for items that may need to
+            //look up paths relative to the moduleName
+            return req.apply(undef, aps.call(arguments, 0).concat([relName, forceSync]));
+        };
+    }
+
+    function makeNormalize(relName) {
+        return function (name) {
+            return normalize(name, relName);
+        };
+    }
+
+    function makeLoad(depName) {
+        return function (value) {
+            defined[depName] = value;
+        };
+    }
+
+    function callDep(name) {
+        if (hasProp(waiting, name)) {
+            var args = waiting[name];
+            delete waiting[name];
+            defining[name] = true;
+            main.apply(undef, args);
+        }
+
+        if (!hasProp(defined, name) && !hasProp(defining, name)) {
+            throw new Error('No ' + name);
+        }
+        return defined[name];
+    }
+
+    //Turns a plugin!resource to [plugin, resource]
+    //with the plugin being undefined if the name
+    //did not have a plugin prefix.
+    function splitPrefix(name) {
+        var prefix,
+            index = name ? name.indexOf('!') : -1;
+        if (index > -1) {
+            prefix = name.substring(0, index);
+            name = name.substring(index + 1, name.length);
+        }
+        return [prefix, name];
+    }
+
+    /**
+     * Makes a name map, normalizing the name, and using a plugin
+     * for normalization if necessary. Grabs a ref to plugin
+     * too, as an optimization.
+     */
+    makeMap = function (name, relName) {
+        var plugin,
+            parts = splitPrefix(name),
+            prefix = parts[0];
+
+        name = parts[1];
+
+        if (prefix) {
+            prefix = normalize(prefix, relName);
+            plugin = callDep(prefix);
+        }
+
+        //Normalize according
+        if (prefix) {
+            if (plugin && plugin.normalize) {
+                name = plugin.normalize(name, makeNormalize(relName));
+            } else {
+                name = normalize(name, relName);
+            }
+        } else {
+            name = normalize(name, relName);
+            parts = splitPrefix(name);
+            prefix = parts[0];
+            name = parts[1];
+            if (prefix) {
+                plugin = callDep(prefix);
+            }
+        }
+
+        //Using ridiculous property names for space reasons
+        return {
+            f: prefix ? prefix + '!' + name : name, //fullName
+            n: name,
+            pr: prefix,
+            p: plugin
+        };
+    };
+
+    function makeConfig(name) {
+        return function () {
+            return (config && config.config && config.config[name]) || {};
+        };
+    }
+
+    handlers = {
+        require: function (name) {
+            return makeRequire(name);
+        },
+        exports: function (name) {
+            var e = defined[name];
+            if (typeof e !== 'undefined') {
+                return e;
+            } else {
+                return (defined[name] = {});
+            }
+        },
+        module: function (name) {
+            return {
+                id: name,
+                uri: '',
+                exports: defined[name],
+                config: makeConfig(name)
+            };
+        }
+    };
+
+    main = function (name, deps, callback, relName) {
+        var cjsModule, depName, ret, map, i,
+            args = [],
+            callbackType = typeof callback,
+            usingExports;
+
+        //Use name if no relName
+        relName = relName || name;
+
+        //Call the callback to define the module, if necessary.
+        if (callbackType === 'undefined' || callbackType === 'function') {
+            //Pull out the defined dependencies and pass the ordered
+            //values to the callback.
+            //Default to [require, exports, module] if no deps
+            deps = !deps.length && callback.length ? ['require', 'exports', 'module'] : deps;
+            for (i = 0; i < deps.length; i += 1) {
+                map = makeMap(deps[i], relName);
+                depName = map.f;
+
+                //Fast path CommonJS standard dependencies.
+                if (depName === "require") {
+                    args[i] = handlers.require(name);
+                } else if (depName === "exports") {
+                    //CommonJS module spec 1.1
+                    args[i] = handlers.exports(name);
+                    usingExports = true;
+                } else if (depName === "module") {
+                    //CommonJS module spec 1.1
+                    cjsModule = args[i] = handlers.module(name);
+                } else if (hasProp(defined, depName) ||
+                           hasProp(waiting, depName) ||
+                           hasProp(defining, depName)) {
+                    args[i] = callDep(depName);
+                } else if (map.p) {
+                    map.p.load(map.n, makeRequire(relName, true), makeLoad(depName), {});
+                    args[i] = defined[depName];
+                } else {
+                    throw new Error(name + ' missing ' + depName);
+                }
+            }
+
+            ret = callback ? callback.apply(defined[name], args) : undefined;
+
+            if (name) {
+                //If setting exports via "module" is in play,
+                //favor that over return value and exports. After that,
+                //favor a non-undefined return value over exports use.
+                if (cjsModule && cjsModule.exports !== undef &&
+                        cjsModule.exports !== defined[name]) {
+                    defined[name] = cjsModule.exports;
+                } else if (ret !== undef || !usingExports) {
+                    //Use the return value from the function.
+                    defined[name] = ret;
+                }
+            }
+        } else if (name) {
+            //May just be an object definition for the module. Only
+            //worry about defining if have a module name.
+            defined[name] = callback;
+        }
+    };
+
+    requirejs = require = req = function (deps, callback, relName, forceSync, alt) {
+        if (typeof deps === "string") {
+            if (handlers[deps]) {
+                //callback in this case is really relName
+                return handlers[deps](callback);
+            }
+            //Just return the module wanted. In this scenario, the
+            //deps arg is the module name, and second arg (if passed)
+            //is just the relName.
+            //Normalize module name, if it contains . or ..
+            return callDep(makeMap(deps, callback).f);
+        } else if (!deps.splice) {
+            //deps is a config object, not an array.
+            config = deps;
+            if (config.deps) {
+                req(config.deps, config.callback);
+            }
+            if (!callback) {
+                return;
+            }
+
+            if (callback.splice) {
+                //callback is an array, which means it is a dependency list.
+                //Adjust args if there are dependencies
+                deps = callback;
+                callback = relName;
+                relName = null;
+            } else {
+                deps = undef;
+            }
+        }
+
+        //Support require(['a'])
+        callback = callback || function () {};
+
+        //If relName is a function, it is an errback handler,
+        //so remove it.
+        if (typeof relName === 'function') {
+            relName = forceSync;
+            forceSync = alt;
+        }
+
+        //Simulate async callback;
+        if (forceSync) {
+            main(undef, deps, callback, relName);
+        } else {
+            //Using a non-zero value because of concern for what old browsers
+            //do, and latest browsers "upgrade" to 4 if lower value is used:
+            //http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#dom-windowtimers-settimeout:
+            //If want a value immediately, use require('id') instead -- something
+            //that works in almond on the global level, but not guaranteed and
+            //unlikely to work in other AMD implementations.
+            setTimeout(function () {
+                main(undef, deps, callback, relName);
+            }, 4);
+        }
+
+        return req;
+    };
+
+    /**
+     * Just drops the config on the floor, but returns req in case
+     * the config return value is used.
+     */
+    req.config = function (cfg) {
+        return req(cfg);
+    };
+
+    /**
+     * Expose module registry for debugging and tooling
+     */
+    requirejs._defined = defined;
+
+    define = function (name, deps, callback) {
+
+        //This module may not have dependencies
+        if (!deps.splice) {
+            //deps is not an array, so probably means
+            //an object literal or factory function for
+            //the value. Adjust args.
+            callback = deps;
+            deps = [];
+        }
+
+        if (!hasProp(defined, name) && !hasProp(waiting, name)) {
+            waiting[name] = [name, deps, callback];
+        }
+    };
+
+    define.amd = {
+        jQuery: true
+    };
+}());
+
+define("../vendor/almond", function(){});
+
+define('unsafeWindow',[], function(){
+  return window;
+});
+define('support',["unsafeWindow"], function(uw){
+  function localStorageTest() {
+    var mod = "support.test";
+    try {
+      localStorage.setItem(mod, mod);
+      localStorage.removeItem(mod);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  
+  var isWebkitURL = typeof uw.webkitURL === "object";
+  var isURL = typeof uw.URL === "object";
+  var isCreateObjectURL = false;
+  var isRevokeObjectURL = false;
+  
+  var maxthonRuntime = window && window.external && window.external.mxGetRuntime && typeof window.external.mxGetRuntime === "function";
+  
+  if (isWebkitURL) {
+    isCreateObjectURL = typeof uw.webkitURL.createObjectURL === "function";
+    isRevokeObjectURL = typeof uw.webkitURL.revokeObjectURL === "function";
+  } else if (isURL) {
+    isCreateObjectURL = typeof uw.URL.createObjectURL === "function";
+    isRevokeObjectURL = typeof uw.URL.revokeObjectURL === "function";
+  }
+  
+  return {
+    localStorage: localStorageTest(),
+    Greasemonkey: (typeof GM_setValue !== "undefined" && (typeof GM_setValue.toString === "undefined" || GM_setValue.toString().indexOf("not supported") === -1)),
+    createObjectURL: isCreateObjectURL,
+    revokeObjectURL: isRevokeObjectURL,
+    webkitURL: isWebkitURL,
+    URL: isURL,
+    maxthonRuntime: maxthonRuntime,
+    maxthonRuntimeStorage: maxthonRuntime && window.external.mxGetRuntime() && window.external.mxGetRuntime().storage,
+    firefoxPort: this.port && typeof this.port.request === "function" && this.port.storage && typeof this.port.on === "function"
+  };
+});
+define('utils',["support", "unsafeWindow"], function(support, uw){
+  function each(obj, callback) {
+    if (isArray(obj)) {
+      for (var i = 0; i < obj.length; i++) {
+        if (callback(i, obj[i]) === true) break;
+      }
+    } else {
+      for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          if (callback(key, obj[key]) === true) break;
+        }
+      }
+    }
+  }
+  
+  function isArray(arr) {
+    return Object.prototype.toString.call(arr) === "[object Array]";
+  }
+  
+  function asyncCall(scope, callback) {
+    return setTimeout(bind.apply(null, [scope, callback].concat(Array.prototype.slice.call(arguments, 2))), 0);
+  }
+  
+  function bind(scope, func) {
+    var args = Array.prototype.slice.call(arguments, 2);
+    return function(){
+      return func.apply(scope, args.concat(Array.prototype.slice.call(arguments)))
+    };
+  }
+  function trimLeft(obj){
+    return obj.replace(/^\s+/, "");
+  }
+  function trimRight(obj){
+    return obj.replace(/\s+$/, "");
+  }
+  function map(obj, callback, thisArg) {
+    for (var i = 0, n = obj.length, a = []; i < n; i++) {
+      if (i in obj) a[i] = callback.call(thisArg, obj[i]);
+    }
+    return a;
+  }
+  
+  function defineLockedProperty(obj, key, setter, getter) {
+    if (typeof obj !== "object") obj = {};
+    if (ie || typeof Object.defineProperty === "function") {
+      Object.defineProperty(obj, key, {
+        get: getter,
+        set: setter
+      });
+      return obj;
+    } else {
+      obj.__defineGetter__(key, getter);
+      obj.__defineSetter__(key, setter);
+      return obj;
+    }
+  }
+  
+  function addEventListener(elm, event, callback, useCapture) {
+    if (elm.addEventListener) {
+      elm.addEventListener(event, callback, useCapture || false);
+    } else if (elm.attachEvent) {
+      elm.attachEvent("on" + event, callback);
+    }
+  }
+  
+  function removeEventListener(elm, event, callback, useCapture) {
+    if (elm.removeEventListener) {
+      elm.removeEventListener(event, callback, useCapture || false);
+    } else if (elm.detachEvent) {
+      elm.detachEvent("on" + event, callback);
+    }
+  }
+  
+  var ie = (function(){
+    for (var v = 3, el = document.createElement('b'), all = el.all || []; el.innerHTML = '<!--[if gt IE ' + (++v) + ']><i><![endif]-->', all[0];);
+    return v > 4 ? v : !!document.documentMode;
+  }());
+  
+  var now = Date.now || function () {
+    return +new Date;
+  };
+  
+  /* Cookies */
+  function setCookie(name, value, domain, path, expires) {
+    domain = domain ? ";domain=" + encodeURIComponent(domain) : "";
+    path = path ? ";path=" + encodeURIComponent(path) : "";
+    expires = 0 > expires ? "" : 0 == expires ? ";expires=" + (new Date(1970, 1, 1)).toUTCString() : ";expires=" + (new Date(now() + 1E3 * expires)).toUTCString();
+    
+    document.cookie = encodeURIComponent(name) + "=" + encodeURIComponent(value) + domain + path + expires;
+  }
+  
+  function getCookie(key) {
+    return getCookies()[key];
+  }
+  
+  function getCookies() {
+    var c = document.cookie, v = 0, cookies = {};
+    if (document.cookie.match(/^\s*\$Version=(?:"1"|1);\s*(.*)/)) {
+      c = RegExp.$1;
+      v = 1;
+    }
+    if (v === 0) {
+      map(c.split(/[,;]/), function(cookie) {
+        var parts = cookie.split(/=/, 2),
+            name = decodeURIComponent(trimLeft(parts[0])),
+            value = parts.length > 1 ? decodeURIComponent(trimRight(parts[1])) : null;
+        cookies[name] = value;
+      });
+    } else {
+      map(c.match(/(?:^|\s+)([!#$%&'*+\-.0-9A-Z^`a-z|~]+)=([!#$%&'*+\-.0-9A-Z^`a-z|~]*|"(?:[\x20-\x7E\x80\xFF]|\\[\x00-\x7F])*")(?=\s*[,;]|$)/g), function($0, $1) {
+        var name = $0, value = $1.charAt(0) === '"' ? $1.substr(1, -1).replace(/\\(.)/g, "$1") : $1;
+        cookies[name] = value;
+      });
+    }
+    return cookies;
+  }
+  
+  function endsWith(str, suffix) {
+    return str.indexOf(suffix, str.length - suffix.length) !== -1;
+  }
+  
+  function inject(func) {
+    var script = document.createElement("script"),
+        p = (document.body || document.head || document.documentElement);
+    if (!p) {
+      throw "Could not inject!!!";
+    }
+    script.setAttribute("type", "text/javascript");
+    script.appendChild(document.createTextNode("(" + func + ")(" + buildArgumentList.apply(null, [false].concat(Array.prototype.slice.call(arguments, 1))) + ");"));
+    p.appendChild(script);
+    p.removeChild(script);
+  }
+  
+  function buildArgumentList(wrap) {
+    var list = [];
+    var args = Array.prototype.slice.call(arguments, 1);
+    
+    for (var i = 0, len = args.length; i < len; i++) {
+      if (typeof args[i] === "string") {
+        list.push("\"" + args[i].replace(/\\/, "\\\\").replace(/"/g, "\\\"") + "\"");
+      } else if (typeof args[i] === "object") {
+        list.push(JSON.stringify(args[i]));
+      } else {
+        list.push(args[i]);
+      }
+    }
+    if (wrap) {
+      return "(" + list.join(",") + ")";
+    } else {
+      return list.join(",");
+    }
+  }
+  
+  function isJSONString(json) {
+    try {
+      JSON.parse(json);
+    } catch (e) {
+      return false;
+    }
+    return true;
+  }
+  
+  function xhr(details) {
+    var xmlhttp;
+    if (typeof XMLHttpRequest !== "undefined") {
+      xmlhttp = new XMLHttpRequest();
+    } else if (typeof opera !== "undefined" && typeof opera.XMLHttpRequest !== "undefined") {
+      xmlhttp = new opera.XMLHttpRequest();
+    } else {
+      if (details["onerror"]) {
+        details["onerror"]();
+      }
+      
+      return;
+    }
+    xmlhttp.onreadystatechange = function(){
+      var responseState = {
+        responseXML:(xmlhttp.readyState == 4 ? xmlhttp.responseXML : ''),
+        responseText:(xmlhttp.readyState == 4 ? xmlhttp.responseText : ''),
+        readyState:xmlhttp.readyState,
+        responseHeaders:(xmlhttp.readyState == 4 ? xmlhttp.getAllResponseHeaders() : ''),
+        status:(xmlhttp.readyState == 4 ? xmlhttp.status : 0),
+        statusText:(xmlhttp.readyState == 4 ? xmlhttp.statusText : ''),
+        finalUrl:(xmlhttp.readyState == 4 ? xmlhttp.finalUrl : '')
+      };
+      if (details["onreadystatechange"]) {
+        details["onreadystatechange"](responseState);
+      }
+      if (xmlhttp.readyState == 4) {
+        if (details["onload"] && xmlhttp.status >= 200 && xmlhttp.status < 300) {
+          details["onload"](responseState);
+        }
+        if (details["onerror"] && (xmlhttp.status < 200 || xmlhttp.status >= 300)) {
+          details["onerror"](responseState);
+        }
+      }
+    };
+    try {
+      xmlhttp.open(details.method, details.url);
+    } catch(e) {
+      if(details["onerror"]) {
+        details["onerror"]({responseXML:'',responseText:'',readyState:4,responseHeaders:'',status:403,statusText:'Forbidden'});
+      }
+      return;
+    }
+    if (details.headers) {
+      for (var prop in details.headers) {
+        xmlhttp.setRequestHeader(prop, details.headers[prop]);
+      }
+    }
+    xmlhttp.send((typeof(details.data) != 'undefined') ? details.data : null);
+  }
+  
+  // Used for the message module (should probably move to another place)
+  // It replaces a property in the obj to a predefined function, where the arguments will be callbackId, target, referer
+  function bindFunctionCallbacks(obj, func, target, referer) {
+    for (key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        if (typeof obj[key] === "obj") {
+          bindFunctionCallbacks(obj[key]);
+        } else if (typeof obj[key] === "string") {
+          if (obj[key].indexOf("@/(message.callback)/") === 0) {
+            var callbackId = obj[key].split("@/(message.callback)/")[1];
+            obj[key] = bind(null, func, callbackId, target, referer);
+          }
+        }
+      }
+    }
+  }
+  
+  function extend(obj, defaults, deep) {
+    if (typeof obj !== "object") throw new TypeError("Unsupported type for obj.");
+    if (typeof defaults !== "object") throw new TypeError("Unsupported type for defaults.");
+    for (var key in defaults) {
+      if (defaults.hasOwnProperty(key)) {
+        if (typeof obj[key] === "object" && typeof defaults[key] === "object" && deep) {
+          extend(obj[key], defaults[key], deep);
+        } else if (!obj.hasOwnProperty(key)) {
+          obj[key] = defaults[key];
+        }
+      }
+    }
+    return obj;
+  }
+  
+  function inArray(key, arr) {
+    for (var i = 0, len = arr.length; i < len; i++) {
+      if (arr[i] === key) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  function listClasses(el) {
+    if (!el || !el.className) return [];
+    return el.className.split(" ");
+  }
+  
+  function addClass(el, className) {
+    var classes = listClasses(el);
+    var addList = className.split(" ");
+    
+    for (var i = 0, len = addList.length; i < len; i++) {
+      if (!inArray(addList[i], classes)) {
+        el.className += " " + addList[i];
+      }
+    }
+    return el.className;
+  }
+  
+  function removeClass(el, className) {
+    var classes = listClasses(el);
+    var removeList = className.split(" ");
+    
+    var buffer = [];
+    for (var i = 0, len = classes.length; i < len; i++) {
+      if (!inArray(classes[i], removeList)) {
+        buffer.push(classes[i]);
+      }
+    }
+    return el.className = buffer.join(" ");
+  }
+  
+  function hasClass(el, className) {
+    return inArray(className, listClasses(el));
+  }
+  
+  function throttle(func, delay, options){
+    function timeout() {
+      previous = options.leading === false ? 0 : new Date;
+      timer = null;
+      result = func.apply(context, args);
+    }
+    var context, args, result, timer = null, previous = 0;
+    options = options || {};
+    return function(){
+      var now = new Date, dt;
+      
+      context = this;
+      args = arguments;
+      
+      if (!previous && options.leading === false) previous = now;
+      dt = delay - (now - previous);
+      
+      if (dt <= 0) {
+        clearTimeout(timer);
+        timer = null;
+        previous = now;
+        result = func.apply(context, args);
+      } else if (!timer && options.trailing !== false) {
+        timer = setTimeout(timeout, dt);
+      }
+      return result;
+    };
+  }
+  
+  function clone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  }
+  
+  function removeDuplicates(arr) {
+    var uniqueArr = [];
+    for (var i = 0, len = arr.length; i < len; i++) {
+      if (!inArray(uniqueArr, arr[i])) {
+        uniqueArr.push(arr[i]);
+      }
+    }
+    
+    return uniqueArr;
+  }
+  
+  function escapeRegExp(str) {
+    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+  }
+  
+  function toBlob(bytes, contentType) {
+    contentType = contentType || "text/plain";
+    var sliceSize = 512;
+    
+    var bytesLength = bytes.length;
+    var slicesCount = Math.ceil(bytesLength / sliceSize);
+    
+    var byteArrays = new Array(slicesCount);
+    
+    for (var sliceIndex = 0; sliceIndex < slicesCount; ++sliceIndex) {
+      var begin = sliceIndex * sliceSize;
+      var end = Math.min(begin + sliceSize, bytesLength);
+      
+      var sliceBytes = new Array(end - begin);
+      for (var offset = begin, i = 0 ; offset < end; ++i, ++offset) {
+        sliceBytes[i] = bytes[offset].charCodeAt(0);
+      }
+      byteArrays[sliceIndex] = new Uint8Array(sliceBytes);
+    }
+    
+    return new Blob(byteArrays, { type: contentType });
+  }
+  
+  function createObjectURL(blob) {
+    if (support.createObjectURL) {
+      if (support.webkitURL) {
+        return uw.webkitURL.createObjectURL(blob);
+      } else {
+        return uw.URL.createObjectURL(blob);
+      }
+    } else {
+      throw "createObjectURL is not supported by the browser!";
+    }
+  }
+  
+  function revokeObjectURL(url) {
+    if (support.revokeObjectURL) {
+      if (support.webkitURL) {
+        return uw.webkitURL.revokeObjectURL(url);
+      } else {
+        return uw.URL.revokeObjectURL(url);
+      }
+    } else {
+      throw "revokeObjectURL is not supported by the browser!";
+    }
+  }
+  
+  // Returns a random number between min and max
+  function getRandomArbitrary(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+  
+  // Returns a random integer between min (included) and max (excluded)
+  function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+  }
+  
+  // Returns a random string of characters of chars with the length of length
+  function generateToken(chars, length) {
+    if (typeof chars !== "string") chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
+    if (typeof length !== "number") length = 64;
+    
+    var charsLength = chars.length;
+    
+    var token = "";
+    for (var i = 0; i < length; i++) {
+      token += chars[getRandomInt(0, charsLength)];
+    }
+    
+    return token;
+  }
+  
+  return {
+    hasClass: hasClass,
+    removeClass: removeClass,
+    addClass: addClass,
+    each: each,
+    isArray: isArray,
+    inArray: inArray,
+    bind: bind,
+    asyncCall: asyncCall,
+    defineLockedProperty: defineLockedProperty,
+    ie: ie,
+    addEventListener: addEventListener,
+    removeEventListener: removeEventListener,
+    now: now,
+    trimLeft: trimLeft,
+    trimRight: trimRight,
+    map: map,
+    setCookie: setCookie,
+    getCookie: getCookie,
+    getCookies: getCookies,
+    endsWith: endsWith,
+    inject: inject,
+    isJSONString: isJSONString,
+    xhr: xhr,
+    buildArgumentList: buildArgumentList,
+    bindFunctionCallbacks: bindFunctionCallbacks,
+    extend: extend,
+    throttle: throttle,
+    clone: clone,
+    removeDuplicates: removeDuplicates,
+    escapeRegExp: escapeRegExp,
+    toBlob: toBlob,
+    createObjectURL: createObjectURL,
+    revokeObjectURL: revokeObjectURL,
+    generateToken: generateToken
+  };
+});
+define('storage/localStorage',["utils"], function(utils){
+  function getItem(key, callback, preferSync) {
+    var item = localStorage.getItem(key);
+    if (preferSync) {
+      callback(item);
+    } else {
+      utils.asyncCall(null, callback, item);
+    }
+  }
+  
+  return {
+    setItem: utils.bind(localStorage, localStorage.setItem),
+    getItem: getItem,
+    removeItem: utils.bind(localStorage, localStorage.removeItem)
+  };
+});
+define('storage/cookies',["utils"], function(utils){
+  function setItem(key, value) {
+    utils.setCookie(prefix + key, value, null, "/", 1000*24*60*60*1000);
+  }
+  
+  function getItem(key, callback, preferSync) {
+    var item = utils.getCookie(prefix + key);
+    if (preferSync) {
+      callback(item);
+    } else {
+      utils.asyncCall(null, callback, item);
+    }
+  }
+  
+  function removeItem(key) {
+    utils.setCookie(prefix + key, "", null, "/", 0);
+  }
+  
+  var prefix = "ytcenter.";
+  
+  return {
+    setItem: setItem,
+    getItem: getItem,
+    removeItem: removeItem
+  };
+});
+define('console',["utils"], function(utils){
+  function setEnabled(b) {
+    enabled = b;
+  }
+  
+  function log() {
+    if (!enabled) return function(){};
+    return console.log.bind(console, "userscript[" + sessionToken + "]");
+  }
+  
+  function error() {
+    if (!enabled) return function(){};
+    return console.error.bind(console, "userscript[" + sessionToken + "]");
+  }
+  
+  function warn() {
+    if (!enabled) return function(){};
+    return console.warn.bind(console, "userscript[" + sessionToken + "]");
+  }
+  
+  var sessionToken = utils.generateToken(null, 8);
+  
+  var enabled = true;
+  
+  var retObj = {};
+  utils.defineLockedProperty(retObj, "log", function(){}, log);
+  utils.defineLockedProperty(retObj, "error", function(){}, error);
+  utils.defineLockedProperty(retObj, "warn", function(){}, warn);
+  
+  return retObj;
+});
+define('storage/browser',["support", "storage/localStorage", "storage/cookies", "console"], function(support, localStorage, cookies){
+  if (support.localStorage) {
+    return localStorage;
+  } else {
+    return cookies;
+  }
+});
+define('storage/userscript',["support", "storage/browser", "utils"], function(support, browser, utils){
+  function setItem(key, value) {
+    GM_setValue(key, value);
+  }
+  
+  function getItem(key, callback, preferSync) {
+    var item = GM_getValue(key);
+    if (preferSync) {
+      callback(item);
+    } else {
+      utils.asyncCall(null, callback, item);
+    }
+  }
+  
+  function removeItem(key) {
+    GM_deleteValue(key);
+  }
+  
+  if (support.Greasemonkey) {
+    return {
+      setItem: setItem,
+      removeItem: removeItem,
+      getItem: getItem
+    };
+  } else {
+    return browser;
+  }
+});
+define('storage',["storage/userscript", "utils"], function(storageHandler, utils){
+  function setItem(key, value) {
+    cache[key] = value;
+    storageHandler.setItem(key, value);
+  }
+  
+  function removeItem(key) {
+    delete cache[key];
+    storageHandler.removeItem(key);
+  }
+  
+  function getItemCallback(callback, key, value) {
+    cache[key] = value;
+    callback(cache[key]);
+  }
+  
+  function getItem(key, callback, sync) {
+    if (!(key in cache)) {
+      storageHandler.getItem(key, utils.bind(null, getItemCallback, callback, key));
+    } else {
+      if (sync) {
+        callback(cache[key]);
+      } else {
+        utils.asyncCall(null, callback, cache[key]);
+      }
+    }
+  }
+  
+  var cache = {};
+  
+  return {
+    setItem: setItem,
+    removeItem: removeItem,
+    getItem: getItem
+  };
+});
+define('UserProxy/utils',[], function(){
+  function bind(scope, func) {
+    var args = Array.prototype.slice.call(arguments, 2);
+    return function(){
+      return func.apply(scope, args.concat(Array.prototype.slice.call(arguments)))
+    };
+  }
+  
+  // Iterate through obj with the callback function.
+  function each(obj, callback) {
+    if (isArray(obj)) {
+      for (var i = 0; i < obj.length; i++) {
+        if (callback(i, obj[i]) === true) break;
+      }
+    } else {
+      for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          if (callback(key, obj[key]) === true) break;
+        }
+      }
+    }
+  }
+  
+  function getKeys(obj) {
+    var keys = [];
+    each(obj, function(key){
+      keys.push(key);
+    });
+    return keys;
+  }
+  
+  // Returns a boolean indicating if object arr is an array.
+  function isArray(arr) {
+    return Object.prototype.toString.call(arr) === "[object Array]";
+  }
+  
+  // Returns a boolean indicating if the value is in the array.
+  function inArray(value, arr) {
+    for (var i = 0, len = arr.length; i < len; i++) {
+      if (arr[i] === value) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  function indexOfArray(value, arr) {
+    for (var i = 0, len = arr.length; i < len; i++) {
+      if (arr[i] === value) {
+        return i;
+      }
+    }
+    return -1;
+  }
+  
+  function indexOf(value, arr) {
+    if (isArray(value, arr)) {
+      return indexOfArray(value, arr);
+    }
+  }
+  
+  // Returns a random number between min and max
+  function getRandomArbitrary(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+  
+  // Returns a random integer between min (included) and max (excluded)
+  function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+  }
+  
+  // Returns a random string of characters of chars with the length of length
+  function generateToken(chars, length) {
+    if (typeof chars !== "string") chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
+    if (typeof length !== "number") length = 64;
+    
+    var charsLength = chars.length;
+    
+    var token = "";
+    for (var i = 0; i < length; i++) {
+      token += chars[getRandomInt(0, charsLength)];
+    }
+    
+    return token;
+  }
+  
+  function escapeECMAVariable(key, defaultKey) {
+    key = key.replace(/[^0-9a-zA-Z_\$]/g, "");
+    while (/$[0-9]/g.test(key)) {
+      if (key === "") return defaultKey;
+      key = key.substring(1);
+    }
+    return key;
+  }
+  
+  function buildArgumentList(wrap) {
+    var list = [];
+    var args = Array.prototype.slice.call(arguments, 1);
+    
+    for (var i = 0, len = args.length; i < len; i++) {
+      if (typeof args[i] === "string") {
+        list.push("\"" + args[i].replace(/\\/, "\\\\").replace(/"/g, "\\\"") + "\"");
+      } else if (typeof args[i] === "object") {
+        list.push(JSON.stringify(args[i]));
+      } else {
+        list.push(args[i]);
+      }
+    }
+    if (wrap) {
+      return "(" + list.join(",") + ")";
+    } else {
+      return list.join(",");
+    }
+  }
+  
+  return {
+    bind: bind,
+    each: each,
+    getKeys: getKeys,
+    isArray: isArray,
+    inArray: inArray,
+    indexOf: indexOf,
+    indexOfArray: indexOfArray,
+    getRandomArbitrary: getRandomArbitrary,
+    getRandomInt: getRandomInt,
+    generateToken: generateToken,
+    escapeECMAVariable: escapeECMAVariable,
+    buildArgumentList: buildArgumentList
+  };
+});
+define('UserProxy/CustomEvent',["./utils"], function(utils){
+  function addEventListener(event, listener) {
+    if (!events[event]) {
+      // Creating the array of listeners for event
+      events[event] = [];
+      
+      docListeners[event] = utils.bind(null, eventListener, event, events[event]);
+      
+      // Adding the event listener.
+      window.addEventListener(event, docListeners[event], false);
+    }
+    
+    // Adding listener to array.
+    events[event].push(listener);
+  }
+  
+  function removeEventListener(event, listener) {
+    if (event in events) {
+      for (var i = 0, len = events[event].length; i < len; i++) {
+        if (events[event][i] === listener) {
+          events[event].splice(i, 1);
+          i--; len--;
+        }
+      }
+      if (events[event].length === 0) {
+        window.removeEventListener(event, docListeners[event], false);
+        
+        events[event] = null;
+        docListeners[event] = null;
+      }
+    }
+  }
+  
+  function eventListener(event, listeners, e) {
+    e = e || window.event;
+    
+    // Parse the detail to the original object.
+    var data = JSON.parse(e.detail);
+    
+    if (typeof data.detail === "object" && data.token !== token) {
+      var detail = data.detail;
+      for (var i = 0, len = listeners.length; i < len; i++) {
+        // Call the listener with the event name and the parsed detail.
+        listeners[i](detail);
+      }
+      
+      // Prevent propagation
+      if (e && typeof e.stopPropagation === "function") {
+        e.stopPropagation();
+      }
+    }
+  }
+  
+  function fireEvent(event, detail) {
+    // Creating the event
+    var e = document.createEvent("CustomEvent");
+    e.initCustomEvent(event, true, true, JSON.stringify({ detail: detail, token: token }));
+    
+    // Firing the event
+    document.documentElement.dispatchEvent(e);
+  }
+  
+  var token = utils.generateToken(); // The token is used to identify itself and prevent calling its own listeners.
+  var events = {};
+  var docListeners = {};
+  
+  return {
+    addEventListener: addEventListener,
+    removeEventListener: removeEventListener,
+    fireEvent: fireEvent
+  };
+});
+define('UserProxy/Message',["./utils"], function(utils){
+  function addEventListener(event, listener) {
+    initMessage(); // Init the message event listener if not already initialized.
+    
+    if (!events[event]) events[event] = [];
+    
+    // Bind the event name to the listener as an argument.
+    var boundListener = utils.bind(null, listener, event);
+    
+    // Add the boundListener to the event
+    events[event].push(boundListener);
+  }
+  
+  function fireEvent(event, detail) {
+    window.postMessage(JSON.stringify({ token: token, event: event, detail: detail }), "*");
+  }
+  
+  function messageListener(e) {
+    e = e || window.event;
+    
+    // Parse the detail to the original object.
+    var data = JSON.parse(e.data);
+    
+    // Verify that the retrieved information is correct and that it didn't call itself.
+    if (typeof data.event === "string" && typeof data.detail === "object" && data.token !== token) {
+      
+      // Iterate through every listener for data.event.
+      if (utils.isArray(events[data.event])) {
+        var listeners = events[data.event];
+        
+        var detail = data.detail;
+        for (var i = 0, len = listeners.length; i < len; i++) {
+          listeners(detail);
+        }
+    
+        // Prevent propagation only if everything went well.
+        if (e && typeof e.stopPropagation === "function") {
+          e.stopPropagation();
+        }
+      }
+    }
+  }
+  
+  function initMessage() {
+    if (!messageEventAdded) {
+      // Adding the message event listener.
+      window.addEventListener("message", messageListener, false);
+    }
+  }
+  
+  var messageEventAdded = false;
+  var token = utils.generateToken(); // The token is used to identify itself and prevent calling its own listeners.
+  
+  var events = {};
+  
+  return {
+    addEventListener: addEventListener,
+    fireEvent: fireEvent
+  };
+});
+define('UserProxy/support',[], function(){
+  function customEvent() {
+    try {
+      var e = document.createEvent('CustomEvent');
+      if (e && typeof e.initCustomEvent === "function") {
+        e.initCustomEvent(mod, true, true, { mod: mod });
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+  
+  var mod = "support.test";
+  
+  return {
+    CustomEvent: customEvent
+  };
+});
+define('UserProxy/memFunction',["./utils", "./CustomEvent", "./Message", "./support"], function(utils, customEvent, message, support){
+  function parseObject(obj, token, type) {
+    if (typeof obj === "object") {
+      utils.each(obj, function(key, value){
+        if (typeof value === "object") {
+          obj[key] = parseObject(value, token, type);
+        } else if (typeof value === "string") {
+          obj[key] = parseString(value);
+        } else if (typeof value === "function") {
+          var id = cache.push(value) - 1;
+          obj[key] = "${" + token + "/" + type + "/" + id + "}";
+        }
+      });
+    } else if (typeof value === "string") {
+      obj = parseString(obj);
+    } else if (typeof obj === "function") {
+      var id = cache.push(obj) - 1;
+      obj = "${" + token + "/" + type + "/" + id + "}";
+    }
+    return obj;
+  }
+  
+  function parseString(str) {
+    if (/^\$[\\]*\{([0-9a-zA-Z\.\-_\/\\]+)\}$/g.test(str)) {
+      return "$\\" + str.substring(1);
+    }
+    return str;
+  }
+  
+  function restoreString(str, token, type) {
+    if (/^\$\{([0-9a-zA-Z\.\-_]+)\/([0-9a-zA-Z\.\-_]+)\/([0-9]+)\}$/g.test(str)) {
+      var parsed = str.substring(2, str.length - 1).split("/"); // " + token + "/" + type + "/" + id + "
+      var id = parseInt(parsed[2], 10);
+      if (parsed[0] === token && parsed[1] === type) {
+        return cache[id];
+      } else {
+        return utils.bind(null, functionPlaceholder, parsed[0] + "-" + parsed[1], id);
+      }
+    } else if (/^\$[\\]+\{([0-9a-zA-Z\.\-_\/\\]+)\}$/g.test(str)) {
+      return "$" + str.substring(2);
+    }
+    return str;
+  }
+  
+  function restoreObject(obj, token, type) {
+    if (typeof obj === "object") {
+      utils.each(obj, function(key, value){
+        if (typeof value === "object") {
+          obj[key] = restoreObject(value, token, type);
+        } else if (typeof value === "string") {
+          obj[key] = restoreString(value, token, type);
+        } else if (typeof value === "function") {
+          throw Error("Function was found!");
+        }
+      });
+    } else if (typeof value === "string") {
+      return restoreString(value, token, type);
+    } else if (typeof value === "function") {
+      throw Error("Function was found!");
+    }
+    return obj;
+  }
+  
+  function functionPlaceholder(event, id) {
+    var args = Array.prototype.slice.call(arguments, 2);
+    if (support.CustomEvent) {
+      return customEvent.fireEvent(event, { callbackId: id, args: args, mem: true });
+    } else {
+      return message.fireEvent(event, { callbackId: id, args: args, mem: true });
+    }
+  }
+  
+  function getCacheFunction(id) {
+    return cache[id];
+  }
+  
+  var cache = [];
+  
+  return {
+    parseObject: parseObject,
+    restoreObject: restoreObject,
+    getCacheFunction: getCacheFunction
+  };
+});
+define('UserProxy/Connection',["./CustomEvent", "./Message", "./utils", "./support", "./memFunction"], function(customEvent, message, utils, support, mem){
+  function listenerProxy(functions, token, type, detail) {
+    setTimeout(utils.bind(null, listener, functions, token, type, detail), 4);
+  }
+  
+  function listener(functions, token, type, detail) {
+    var keys = utils.getKeys(functions);
+    var index = utils.indexOfArray(detail.method, keys);
+    if (index > -1) {
+      var result = functions[keys[index]].apply(null, mem.restoreObject(detail.args, token, type));
+      if (typeof detail.id === "number") {
+        var memResult = mem.parseObject(result, token, type);
+        var detail = { callbackId: detail.id, args: [ memResult ] };
+        if (support.CustomEvent) {
+          customEvent.fireEvent(token + "-page", detail);
+        } else {
+          message.addEventListener(token + "-page", detail);
+        }
+      }
+    } else {
+      throw "Method " + detail.method + " has not been set!";
+    }
+  }
+  
+  function Connection(pageProxy) {
+    this.token = utils.generateToken();
+    this.functions = {};
+    this.namespace = "UserProxy";
+    this.pageProxy = pageProxy;
+  }
+  
+  Connection.prototype.setFunctions = function setFunctions(functions) {
+    this.functions = functions;
+  }
+  
+  Connection.prototype.setNamespace = function setFunctions(namespace) {
+    this.namespace = namespace;
+  }
+  
+  Connection.prototype.inject = function inject(code) {
+    var parent = (document.body || document.head || document.documentElement);
+    if (!parent) throw "Parent was not found!";
+    
+    var script = document.createElement("script")
+    script.setAttribute("type", "text/javascript");
+
+    this.connect();
+    
+    script.appendChild(document.createTextNode("(" + code + ")(" + utils.buildArgumentList.apply(null, [false, this.token, utils.getKeys(this.functions)].concat(Array.prototype.slice.call(arguments, 1))) + ");"));
+    
+    parent.appendChild(script);
+    parent.removeChild(script);
+  }
+  
+  Connection.prototype.connect = function connect() {
+    if (this.establishedConnectionListener) this.disconnect();
+    
+    this.establishedConnectionListener = utils.bind(null, listenerProxy, this.functions, this.token, "content");
+    if (support.CustomEvent) {
+      customEvent.addEventListener(this.token + "-content", this.establishedConnectionListener);
+    } else {
+      message.addEventListener(this.token + "-content", this.establishedConnectionListener);
+    }
+  }
+  
+  Connection.prototype.disconnect = function connect() {
+    if (!this.establishedConnectionListener) return;
+    if (support.CustomEvent) {
+      customEvent.removeEventListener(this.token + "-content", this.establishedConnectionListener);
+    } else {
+      message.removeEventListener(this.token + "-content", this.establishedConnectionListener);
+    }
+    this.establishedConnectionListener = null;
+  }
+  
+  return Connection;
+});
+define('extensions-connection/userscript',[], function(){
+  function empty() { }
+  return {
+    setPageConnection: empty
+  };
+});
+define('xhr/browser',[], function(){
+  function xhr(details) {
+    var xmlhttp;
+    if (typeof XMLHttpRequest != "undefined") {
+      xmlhttp = new XMLHttpRequest();
+    } else {
+      details["onerror"](responseState);
+    }
+    xmlhttp.onreadystatechange = function(){
+      var responseState = {
+        responseXML: '',
+        responseText: (xmlhttp.readyState == 4 ? xmlhttp.responseText : ''),
+        readyState: xmlhttp.readyState,
+        responseHeaders: (xmlhttp.readyState == 4 ? xmlhttp.getAllResponseHeaders() : ''),
+        status: (xmlhttp.readyState == 4 ? xmlhttp.status : 0),
+        statusText: (xmlhttp.readyState == 4 ? xmlhttp.statusText : ''),
+        finalUrl: (xmlhttp.readyState == 4 ? xmlhttp.finalUrl : '')
+      };
+      if (details["onreadystatechange"]) {
+        details["onreadystatechange"](responseState);
+      }
+      if (xmlhttp.readyState == 4) {
+        if (details["onload"] && xmlhttp.status >= 200 && xmlhttp.status < 300) {
+          details["onload"](responseState);
+        }
+        if (details["onerror"] && (xmlhttp.status < 200 || xmlhttp.status >= 300)) {
+          details["onerror"](responseState);
+        }
+      }
+    };
+    try {
+      xmlhttp.open(details.method, details.url);
+    } catch(e) {
+      details["onerror"]();
+    }
+    if (details.headers) {
+      for (var prop in details.headers) {
+        xmlhttp.setRequestHeader(prop, details.headers[prop]);
+      }
+    }
+    xmlhttp.send((typeof(details.data) !== 'undefined') ? details.data : null);
+  }
+  
+  return xhr;
+});
+define('xhr/userscript',["support", "xhr/browser"], function(support, browser){
+  if (support.Greasemonkey) {
+    return GM_xmlhttpRequest;
+  } else {
+    return browser;
+  }
+});
+define('xhr',["xhr/userscript"], function(xhr){
+  return xhr;
+});
+define('main-wrapper',["storage", "UserProxy/Connection", "extensions-connection/userscript", "xhr"], function(storage, Connection, extension, xhr){
+  var functionMap = {
+    "setItem": storage.setItem,
+    "getItem": storage.getItem,
+    "removeItem": storage.removeItem,
+    "xhr": xhr
+  };
+  
+  var connection = null;
+  
+  storage.getItem("YouTubeCenterSettings", function(settings){
+    if (typeof settings === "string") settings = JSON.parse(settings || "{}");
+    connection = new Connection();
+    connection.setFunctions(functionMap);
+    
+    extension.setPageConnection(connection);
+    
+    connection.inject(mainPage, settings);
+  }, true);
+});
+
+require(["main-wrapper"]);
+}());})();

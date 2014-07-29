@@ -5,18 +5,20 @@ define(["utils"], function(utils){
   
   function log() {
     if (!enabled) return function(){};
-    return console.log.bind(console, "${runtime.browser.name}");
+    return console.log.bind(console, "${runtime.browser.name}[" + sessionToken + "]");
   }
   
   function error() {
     if (!enabled) return function(){};
-    return console.error.bind(console, "${runtime.browser.name}");
+    return console.error.bind(console, "${runtime.browser.name}[" + sessionToken + "]");
   }
   
   function warn() {
     if (!enabled) return function(){};
-    return console.warn.bind(console, "${runtime.browser.name}");
+    return console.warn.bind(console, "${runtime.browser.name}[" + sessionToken + "]");
   }
+  
+  var sessionToken = utils.generateToken(null, 8);
   
   var enabled = true;
   
