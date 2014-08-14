@@ -1,0 +1,4 @@
+content ${appName} ${extension.dir.data}
+content ${appName} ${extension.dir.data}icon.png
+content ${appName} ${extension.dir.data}icon32.png
+content ${appName} ${extension.dir.data}icon64.png

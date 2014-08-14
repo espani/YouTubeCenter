@@ -1,3 +1,7 @@
 # Modules
 node_modules/
+build/
+test/
+
+# Keys
 crowdin.key

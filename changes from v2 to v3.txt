@@ -1,0 +1,20 @@
+Settings Dialog
+ - Tabs
+ - Sub tabs
+ - Groups in tabs
+ - Descriptive tooltips (reference to the documentation dialog)
+ - Make an extension version of the settings
+ - Merge the color picker and opacity.
+ - Maybe making the dialog bigger?
+
+Documentation Dialog
+ - A descriptive description of every feature in YouTube Center
+ - Will probably be a complete copy of http://yeppha.github.io/documentation/
+
+Element placement (A system to handle elements that needs to be inserted into YouTube)
+ - Drag 'n drop feature to re-position the elements on the page.
+ - Possible customize buttons.
+
+Data storing
+ - Separate caching and settings into two separate files.
+ - Make a more intelligent method to store data, where it would check if the settings are newer.

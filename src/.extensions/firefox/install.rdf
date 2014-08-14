@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+  <Description about="urn:mozilla:install-manifest">
+    <em:id>${firefox.ID}</em:id>
+    <em:version>${version}</em:version>
+    <em:type>2</em:type>
+    <em:iconURL>chrome://${appName}/content/icon32.png</em:iconURL>
+    <em:iconURL64>chrome://${appName}/content/icon64.png</em:iconURL64>
+    <em:optionsURL>${firefox.options}</em:optionsURL>
+    <em:optionsType>${firefox.options.type}</em:optionsType>
+    <em:bootstrap>true</em:bootstrap>
+
+    <!-- Firefox -->
+    <em:targetApplication>
+      <Description>
+        <em:id>${firefox.target.firefox.id}</em:id>
+        <em:minVersion>${firefox.target.firefox.min}</em:minVersion>
+        <em:maxVersion>${firefox.target.firefox.max}</em:maxVersion>
+      </Description>
+    </em:targetApplication>
+    
+    <!-- Seamonkey -->
+    <em:targetApplication>
+      <Description>
+        <em:id>${firefox.target.seamonkey.id}</em:id>
+        <em:minVersion>${firefox.target.seamonkey.min}</em:minVersion>
+        <em:maxVersion>${firefox.target.seamonkey.max}</em:maxVersion>
+      </Description>
+    </em:targetApplication>
+    
+    <!-- Firefox Mobile -->
+    <em:targetApplication>
+      <Description>
+        <em:id>${firefox.target.mobile.id}</em:id>
+        <em:minVersion>${firefox.target.mobile.min}</em:minVersion>
+        <em:maxVersion>${firefox.target.mobile.max}</em:maxVersion>
+      </Description>
+    </em:targetApplication>
+
+    <!-- Front End MetaData -->
+    <em:name>${name}</em:name>
+    <em:description>${description}</em:description>
+    <em:creator>${author}</em:creator>
+    
+    <!-- Translators -->
+    ${translators:xml}
+    
+    <!-- Contributors -->
+    ${contributors:xml}
+  </Description>
+</RDF>
