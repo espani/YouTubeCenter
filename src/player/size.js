@@ -1,4 +1,4 @@
-define(["player/listeners", "player/player", "window", "utils"], function(listeners, player, win, utils){
+define(["exports", "./listeners", "./player", "window", "utils"], function(exports, listeners, player, win, utils){
   function onPlayerSizeChange(large) {
     if (large) {
       setSize(largeSize);
@@ -129,12 +129,12 @@ define(["player/listeners", "player/player", "window", "utils"], function(listen
   }
   
   var smallSize = {
-    width: 640,
+    width: 1280,
     widthUnit: "px",
-    large: false
+    large: true
   };
   var largeSize = {
-    width: 1280,
+    width: 1920,
     widthUnit: "px",
     large: true
   };
@@ -152,8 +152,9 @@ define(["player/listeners", "player/player", "window", "utils"], function(listen
   
   win.addEventListener("resize", utils.throttle(update, 100));
   
-  return {
-    setSize: setSize,
-    getRatio: getRatio
-  };
+  /* Exports */
+  exports.setSize = setSize;
+  exports.getRatio = getRatio;
+  
+  return exports;
 });

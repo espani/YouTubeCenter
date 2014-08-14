@@ -140,6 +140,8 @@ define(["support", "unsafeWindow"], function(support, uw){
         list.push("\"" + args[i].replace(/\\/, "\\\\").replace(/"/g, "\\\"") + "\"");
       } else if (typeof args[i] === "object") {
         list.push(JSON.stringify(args[i]));
+      } else if (typeof args[i] === "undefined") {
+        list.push("null");
       } else {
         list.push(args[i]);
       }
@@ -231,6 +233,7 @@ define(["support", "unsafeWindow"], function(support, uw){
   function extend(obj, defaults, deep) {
     if (typeof obj !== "object") throw new TypeError("Unsupported type for obj.");
     if (typeof defaults !== "object") throw new TypeError("Unsupported type for defaults.");
+    
     for (var key in defaults) {
       if (defaults.hasOwnProperty(key)) {
         if (typeof obj[key] === "object" && typeof defaults[key] === "object" && deep) {
@@ -432,6 +435,23 @@ define(["support", "unsafeWindow"], function(support, uw){
     return keys;
   }
   
+  function setProperty(target, path, value, createPath) {
+    var tokens = path.split(".");
+    for (var i = 0, len = tokens.length - 1; i < len; i++) {
+      if (target[tokens[i]]) {
+        target = target[tokens[i]];
+      } else {
+        if (createPath) {
+          target[tokens[i]] = {};
+          target = target[tokens[i]];
+        } else {
+          throw "Path " + path + " does not exist for", target;
+        }
+      }
+    }
+    target[tokens[tokens.length - 1]] = value;
+  }
+  
   return {
     hasClass: hasClass,
     removeClass: removeClass,
@@ -471,6 +491,7 @@ define(["support", "unsafeWindow"], function(support, uw){
     generateToken: generateToken,
     escapeECMAVariable: escapeECMAVariable,
     indexOfArray: indexOfArray,
-    getKeys: getKeys
+    getKeys: getKeys,
+    setProperty: setProperty
   };
 });

@@ -1,4 +1,4 @@
-define(["utils", "player/api", "unsafeWindow", "console", "player/onYouTubePlayerReady"], function(utils, playerAPI, uw, con, onReady){
+define(["exports", "utils", "./api", "unsafeWindow", "console", "./onYouTubePlayerReady", "ytready"], function(exports, utils, playerAPI, uw, con, onReady, ytready){
   // Get the YouTube listener for the passed event.
   function getYouTubeListener(event) {
     var ytEvent = getListenerName(event);
@@ -11,7 +11,7 @@ define(["utils", "player/api", "unsafeWindow", "console", "player/onYouTubePlaye
     var uid = null;
     
     utils.each(uw, function(key, value){
-      if (key.indexOf("ytPlayer") !== -1) {
+      if (key.indexOf("ytPlayer") === 0) {
         if (key.indexOf("player_uid_") !== -1) {
           var uidMatch = key.match(/player_uid_([0-9]+)_([0-9]+)$/);
           
@@ -30,6 +30,7 @@ define(["utils", "player/api", "unsafeWindow", "console", "player/onYouTubePlaye
         }
       }
     });
+    
     return { id: id, uid: uid };
   }
   
@@ -46,7 +47,7 @@ define(["utils", "player/api", "unsafeWindow", "console", "player/onYouTubePlaye
     ytListeners[ytEvent] = func;
   }
   function ytListenerContainerGetter(event, func) {
-    return utils.bind(null, callListener, event, 1);
+    return utils.bind(null, callListener, event, ORIGIN_PROPERTY);
   }
   
   /* Origin argument
@@ -64,20 +65,19 @@ define(["utils", "player/api", "unsafeWindow", "console", "player/onYouTubePlaye
     var args = Array.prototype.slice.call(arguments, 2);
     var returnVal = null;
     
-    if (enabled && origin === 0 && (!events.hasOwnProperty(event) || (events.hasOwnProperty(event) && !events[event].override))) {
+    if (enabled && origin === ORIGIN_PLAYER && (!events.hasOwnProperty(event) || (events.hasOwnProperty(event) && !events[event].override))) {
       /* Override is false and the origin is from the player; call the YouTube Center listeners */
       if (events.hasOwnProperty(event)) {
         for (var i = 0, len = events[event].listeners.length; i < len; i++) {
           returnVal = events[event].listeners[i].apply(null, args);
         }
       }
-    } else if (enabled && origin === 1) {
+    } else if (enabled && origin === ORIGIN_PROPERTY) {
       if (events.hasOwnProperty(event) && events[event].override) {
         /* Override is true and the origin is from the global window; call the YouTube Center listeners */
         for (var i = 0, len = events[event].listeners.length; i < len; i++) {
           events[event].listeners[i].apply(generateThisObject(), args);
         }
-        con.log("[Player Listener] Event " + event + " was called with", args);
       } else if (ytListeners[ytEvent]) {
         if (apiNotAvailable) {
           /* API is not available therefore call YouTube Center listeners as YouTube listener is called  */
@@ -88,8 +88,6 @@ define(["utils", "player/api", "unsafeWindow", "console", "player/onYouTubePlaye
         
         /* Override is false and the origin is from the global window; call the YouTube listener */
         returnVal = ytListeners[ytEvent].apply(uw, args);
-        
-        con.log("[Player Listener] Event " + event + " was called with", args);
       }
     } else if (!enabled) {
       /* Everything is disabled; call the YouTube listener */
@@ -106,7 +104,7 @@ define(["utils", "player/api", "unsafeWindow", "console", "player/onYouTubePlaye
       apiNotAvailable = false;
       for (event in events) {
         if (events.hasOwnProperty(event)) {
-          playerListener[event] = utils.bind(null, callListener, event, 0);
+          playerListener[event] = utils.bind(null, callListener, event, ORIGIN_PLAYER);
           api.addEventListener(event, playerListener[event]);
         }
       }
@@ -135,9 +133,8 @@ define(["utils", "player/api", "unsafeWindow", "console", "player/onYouTubePlaye
   
   function init() {
     if (enabled) return;
-    con.log("[Player Listener] Has begun the init...");
     var api = playerAPI.getAPI();
-    playerDetails = getPlayerListenerDetails();
+    playerListenerDetails = getPlayerListenerDetails();
     
     enabled = true; // Indicate that the it's active.
 
@@ -190,6 +187,9 @@ define(["utils", "player/api", "unsafeWindow", "console", "player/onYouTubePlaye
     enabled = false;
     apiNotAvailable = true;
   }
+  
+  var ORIGIN_PLAYER = 0;
+  var ORIGIN_PROPERTY = 1;
   
   var playerListenerDetails = { id: 1, uid: null };
   var ytListeners = {};
@@ -273,13 +273,15 @@ define(["utils", "player/api", "unsafeWindow", "console", "player/onYouTubePlaye
     }
   };
   
+  // Intialize the player listeners at player on ready.
   onReady.addListener(init);
   
-  return {
-    addEventListener: addEventListener,
-    removeEventListener: removeEventListener,
-    setOverride: setOverride,
-    init: init,
-    unload: unload
-  };
+  /* Exports */
+  exports.addEventListener = addEventListener;
+  exports.removeEventListener = removeEventListener;
+  exports.setOverride = setOverride;
+  exports.init = init;
+  exports.unload = unload;
+  
+  return exports;
 });

@@ -18,14 +18,17 @@ define(["utils"], function(utils){
     return console.warn.bind(console, "${runtime.browser.name}[" + sessionToken + "]");
   }
   
-  var sessionToken = utils.generateToken(null, 8);
+  var sessionToken = (typeof consoleSessionToken === "string" ? consoleSessionToken : utils.generateToken(null, 8));
   
   var enabled = true;
   
-  var retObj = {};
-  utils.defineLockedProperty(retObj, "log", function(){}, log);
-  utils.defineLockedProperty(retObj, "error", function(){}, error);
-  utils.defineLockedProperty(retObj, "warn", function(){}, warn);
+  var con = {};
   
-  return retObj;
+  con.sessionToken = sessionToken;
+  
+  utils.defineLockedProperty(con, "log", function(){}, log);
+  utils.defineLockedProperty(con, "error", function(){}, error);
+  utils.defineLockedProperty(con, "warn", function(){}, warn);
+  
+  return con;
 });

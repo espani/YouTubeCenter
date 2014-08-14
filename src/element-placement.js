@@ -5,9 +5,9 @@ define(["utils"], function(utils){
   * @param {String} id The id of the group.
   * @param {HTMLElement} element The element that will be added to the group.
   **/
-  function addElement(id, element) {
+  function addElement(id, elementId, element) {
     if (!groups[id]) throw "Group " + id + " has not been created!";
-    groups[id].children.push(element);
+    groups[id].children.push({ id: elementId, element: element });
   }
   
   /**
@@ -144,32 +144,119 @@ define(["utils"], function(utils){
     return element;
   }
   
-  function getElementPositions() {
-    throw "Not implemented yet!";
-  }
-  
-  function getOrderedList() {
-    var list = [];
-    utils.each(groups, function(id, group){
-      var childrenIds = [];
-      for (var i = 0, len = group.children.length; i < len; i++) {
-        childrenIds.push(getUniqueElementId(group.children[i]));
+  function getRegisteredElementUniqueId(el) {
+    for (var key in groups) {
+      if (groups.hasOwnProperty(key)) {
+        var children = groups[key].children;
+        for (var i = 0, len = children.length; i < len; i++) {
+          if (el === children[i].element) {
+            return children[i].id;
+          }
+        }
       }
-      list.push({ id: id, children: childrenIds });
-    });
-    return list;
+    }
+    return null;
   }
   
-  function setOrderByList(list) {
-    throw "Not implemented yet!";
+  function getRegisteredElementByUniqueId(id) {
+    for (var key in groups) {
+      if (groups.hasOwnProperty(key)) {
+        var children = groups[key].children;
+        for (var i = 0, len = children.length; i < len; i++) {
+          if (id === children[i].id) {
+            return children[i].element;
+          }
+        }
+      }
+    }
+    return null;
   }
+  
+  function isElementRegistered(el) {
+    for (var key in groups) {
+      if (groups.hasOwnProperty(key)) {
+        if (isElementInGroup(el, key)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  
+  function isElementInGroup(el, groupId) {
+    if (!groups[groupId]) throw "Group " + groupId + " does not exist!";
+    
+    var children = groups[groupId].children;
+    for (var i = 0, len = children.length; i < len; i++) {
+      if (children[i] === el) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  function getSortList() {
+    var map = {};
+    for (var key in groups) {
+      if (groups.hasOwnProperty(key)) {
+        var group = groups[key];
+        
+        var groupElements = [];
+        
+        if (group.element && group.element.children) {
+          var children = group.element.children;
+          for (var i = 0, len = children.length; i < len; i++) {
+            var child = children[i];
+            var data = { };
+            if (isElementRegistered(child)) {
+              data.type = REGISTERED;
+              data.uniqueId = getRegisteredElementUniqueId(child);
+            } else {
+              data.type = NONREGISTERED;
+              data.uniqueId = getElementUniqueId(child);
+            }
+            groupElements.push(data);
+          }
+        }
+        map[key] = groupElements;
+      }
+    }
+    return map;
+  }
+  
+  function setSortList(list) {
+    utils.each(list, function(groupId, elements){
+      if (!groups[groupId]) throw "Group " + groupId + " does not exist!";
+      var group = groups[groupId];
+      for (var i = 0, len = elements.length; i < len; i++) {
+        var element = elements[i];
+        var el = null;
+        if (element.type === REGISTERED) {
+          el = getRegisteredElementByUniqueId(element.id);
+        } else if (element.type === NONREGISTERED) {
+          el = getRegisteredElementByUniqueId(element.id);
+        } else {
+          throw "Element[" + groupId + "/id@" + element.id + "] type " + element.type + " doesn't exist!";
+        }
+        if (el !== null) {
+          if (el.parentNode && el.parentNode.removeChild) {
+            el.parentNode.removeChild(el);
+          }
+          group.element.appendChild(el);
+        }
+      }
+    });
+  }
+  
+  var REGISTERED = 0;
+  var NONREGISTERED = 1;
   
   var groups = {};
   
   return {
     addElement: addElement,
     createGroup: createGroup,
-    getOrderedList: getOrderedList,
-    setOrderByList: setOrderByList
+    getSortList: getSortList,
+    setSortList: setSortList
   };
 });

@@ -1,4 +1,4 @@
-define(["storage/${runtime.browser.name}", "utils"], function(storageHandler, utils){
+define(["exports", "storage/${runtime.browser.name}", "utils"], function(exports, storageHandler, utils){
   function setItem(key, value) {
     cache[key] = value;
     storageHandler.setItem(key, value);
@@ -20,6 +20,7 @@ define(["storage/${runtime.browser.name}", "utils"], function(storageHandler, ut
     } else {
       if (sync) {
         callback(cache[key]);
+        return cache[key];
       } else {
         utils.asyncCall(null, callback, cache[key]);
       }
@@ -28,9 +29,10 @@ define(["storage/${runtime.browser.name}", "utils"], function(storageHandler, ut
   
   var cache = {};
   
-  return {
-    setItem: setItem,
-    removeItem: removeItem,
-    getItem: getItem
-  };
+  /* Exports */
+  exports.setItem = setItem;
+  exports.removeItem = removeItem;
+  exports.getItem = getItem;
+  
+  return exports;
 });

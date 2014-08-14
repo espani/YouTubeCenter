@@ -29,7 +29,9 @@ module.exports = function(grunt) {
           include: ["main"],
           insertRequire: ["main"],
           out: "./build/main-all.js",
-          wrap: true
+          wrap: true,
+          generateSourceMaps: true,
+          useSourceUrl: true
         }
       },
       sandbox: {
@@ -40,7 +42,9 @@ module.exports = function(grunt) {
           include: ["main-wrapper"],
           insertRequire: ["main-wrapper"],
           out: "./build/main-wrapper-all.js",
-          wrap: true
+          wrap: true,
+          generateSourceMaps: true,
+          useSourceUrl: true
         }
       }
     },
@@ -173,7 +177,7 @@ module.exports = function(grunt) {
   grunt.registerTask("wrapInFunction", "Wraps file into a function.", function() {
     var inPath = "./build/main-all.js";
     var outPath = "./build/main-all.js";
-    var before = "function mainPage(UserProxy_token, UserProxy_functions, globalSettings) {\n";
+    var before = "function mainPage(UserProxy_token, UserProxy_functions, globalSettings, consoleSessionToken) {\n";
     var after = "\n}";
     var content = grunt.file.read(inPath);
 
@@ -183,11 +187,32 @@ module.exports = function(grunt) {
   grunt.registerTask("wrap-contentscript", "Wraps file into a function.", function() {
     var path = "./build/content-script.js";
     
-    var before = "(function(){";
+    var before = "(function(){\n";
     var content = grunt.file.read(path);
-    var after = "})();";
+    var after = "\n})();";
 
     grunt.file.write(path, before + content + after);
+  });
+  
+  grunt.registerTask("includeSourceMappingFile", "Importign the .map file into the .js file", function() {
+    var files = [ "./build/main-all.js", "./build/main-wrapper-all.js" ];
+    var cwd = "./build/"
+    
+    for (var i = 0, len = files.length; i < len; i++) {
+      var file = files[i];
+      if (grunt.file.isFile(file)) {
+        var pattern = /\/\/\# sourceMappingURL=([\w\.\-\_]+)/g;
+        var content = grunt.file.read(file);
+        
+        content = content.replace(pattern, function(match, $1){
+          var mapFile = grunt.file.read(cwd + $1);
+          
+          return "//# sourceMappingURL=data:application/json;base64," + new Buffer(mapFile).toString("base64");
+        });
+        
+        grunt.file.write(file, content);
+      }
+    }
   });
   
   grunt.registerTask("loadLanguageFile", "Load the language.json file into the memory.", function() {
@@ -227,6 +252,7 @@ module.exports = function(grunt) {
     "replace:config",
     "wrapInFunction",
     "requirejs:sandbox",
+    "includeSourceMappingFile",
     "concat:extension",
     "wrap-contentscript",
     "uglify:extension",
@@ -239,7 +265,8 @@ module.exports = function(grunt) {
     "copy:userscript",
     "build-after-contentscript",
     "uglify:userscript",
-    "concat:userscript"
+    "concat:userscript",
+    "clean:build"
   ]);
   
   /* Compile variables */

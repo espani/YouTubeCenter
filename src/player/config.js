@@ -5,50 +5,28 @@ define(["utils", "unsafeWindow", "console"], function(utils, uw, con){
   
   function setConfig(cfg, val) {
     if (typeof cfg === "string") {
-      var parts = cfg.split(".");
-      var cfg = config;
-      for (var i = 0, len = parts.length; i < len; i++) {
-        if (i === len - 1) {
-          cfg[parts[i]] = val;
-        } else {
-          if (!(parts[i] in cfg)) {
-            cfg[parts[i]] = {};
-          }
-          cfg = cfg[parts[i]];
-        }
-      }
+      utils.setProperty(config, cfg, val, true);
     } else {
       config = cfg;
     }
   }
   
   function configSetter(cfg) {
-    setConfig(JSON.parse(JSON.stringify(cfg))); // Let's clone it
-    utils.extend(persistentConfig, cfg, true);
+    setConfig(cfg); // set the configuration. Keep the reference
   }
   
   function configGetter() {
     var cfg = getConfig();
     if (!cfg) return cfg;
-    cfg = JSON.parse(JSON.stringify(cfg));
-    utils.extend(persistentConfig, cfg, true);
-    return cfg;
+    cfg = utils.clone(cfg);
+    var persistentCfg = utils.clone(persistentConfig);
+    utils.extend(persistentCfg, cfg, true);
+    return persistentCfg;
   }
   
   function setPersistentConfig(cfg, val) {
     if (typeof cfg === "string") {
-      var parts = cfg.split(".");
-      var cfg = persistentConfig;
-      for (var i = 0, len = parts.length; i < len; i++) {
-        if (i === len - 1) {
-          cfg[parts[i]] = val;
-        } else {
-          if (!(parts[i] in cfg)) {
-            cfg[parts[i]] = {};
-          }
-          cfg = cfg[parts[i]];
-        }
-      }
+      utils.setProperty(persistentConfig, cfg, val, true);
     } else {
       persistentConfig = cfg;
     }
@@ -66,6 +44,7 @@ define(["utils", "unsafeWindow", "console"], function(utils, uw, con){
   
   config = uw.ytplayer.config || {};
   
+  // Make sure that YouTube doesn't override the ytplayer variable or adding an unwanted property to ytplayer.
   utils.defineLockedProperty(uw.ytplayer, "config", configSetter, configGetter);
   
   return {

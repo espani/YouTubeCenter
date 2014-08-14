@@ -1,4 +1,4 @@
-define(["unsafeWindow", "player/api", "player/config", "utils", "unsafeYouTubeCenter"], function(uw, playerAPI, config, utils, uytc){
+define(["exports", "unsafeWindow", "./api", "./config", "utils", "unsafeYouTubeCenter", "console"], function(exports, uw, playerAPI, config, utils, uytc, con){
   function onPlayerReady(api) {
     playerAPI.setAPI(api);
     
@@ -25,10 +25,11 @@ define(["unsafeWindow", "player/api", "player/config", "utils", "unsafeYouTubeCe
   var listeners = [];
   
   config.setPersistentConfig("args.jsapicallback", "ytcenter.player.onReady");
-  uytc.player.onReady = utils.bind(this, onPlayerReady)
+  uytc.player.onReady = utils.bind(this, onPlayerReady);
+  uw.onYouTubePlayerReady = onPlayerReady;
   
-  return {
-    addListener: addListener,
-    removeListener: removeListener
-  };
+  exports.addListener = addListener;
+  exports.removeListener = removeListener;
+  
+  return exports;
 });
