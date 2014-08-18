@@ -2,6 +2,7 @@
 node_modules/
 build/
 test/
+dist/
 
 # Keys
 crowdin.key
