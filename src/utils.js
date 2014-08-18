@@ -40,6 +40,27 @@ define(["support", "unsafeWindow"], function(support, uw){
     return a;
   }
   
+  /**
+  * Define a property with a getter and a setter.
+  *
+  * @method defineProperty
+  * @param {Object} obj The object where the property resides in.
+  * @param {String} key The name of the property.
+  * @param {Function} get The getter function.
+  * @param {Function} set The setter function.
+  **/
+  function defineProperty(obj, key, get, set) {
+    if (Object && typeof Object.defineProperty === "function") {
+      Object.defineProperty(obj, key, {
+        "get": get,
+        "set": set
+      });
+    } else {
+      obj.__defineGetter__(key, get);
+      obj.__defineSetter__(key, set);
+    }
+  }
+  
   function defineLockedProperty(obj, key, setter, getter) {
     if (typeof obj !== "object") obj = {};
     if (ie || typeof Object.defineProperty === "function") {
@@ -492,6 +513,7 @@ define(["support", "unsafeWindow"], function(support, uw){
     escapeECMAVariable: escapeECMAVariable,
     indexOfArray: indexOfArray,
     getKeys: getKeys,
-    setProperty: setProperty
+    setProperty: setProperty,
+    defineProperty: defineProperty
   };
 });

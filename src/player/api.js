@@ -1,13 +1,44 @@
-define(["unsafeWindow", "utils"], function(unsafeWindow, utils){
+/**
+* The player API
+*
+* @namespace player
+* @class PlayerAPI
+**/
+define(["exports", "utils"], function(exports, utils){
+  /**
+  * Get the player API.
+  *
+  * @static
+  * @method getAPI
+  * @return {Object} The player API.
+  **/
   function getAPI() {
     if (!apiCache) {
       apiCache = bindPlayerAPI();
     }
     return apiCache;
   }
+  
+  /**
+  * Set the player API.
+  *
+  * @static
+  * @method setAPI
+  * @param {Object} api The player API.
+  **/
   function setAPI(api) {
     apiCache = api;
   }
+  
+  /**
+  * Bind the player API from the #movie_player element
+  * into an object.
+  *
+  * @private
+  * @static
+  * @method bindPlayerAPI
+  * @return {Object} The player API.
+  **/
   function bindPlayerAPI() {
     var player = document.getElementById("movie_player");
     var api = {};
@@ -21,10 +52,18 @@ define(["unsafeWindow", "utils"], function(unsafeWindow, utils){
     return api;
   }
   
+  /**
+  * The cached player API.
+  *
+  * @private
+  * @static
+  * @property apiCache
+  * @type Object
+  **/
   var apiCache = null;
   
-  return {
-    getAPI: getAPI,
-    setAPI: setAPI
-  };
+  exports.getAPI = getAPI;
+  exports.setAPI = setAPI;
+  
+  return exports;
 });

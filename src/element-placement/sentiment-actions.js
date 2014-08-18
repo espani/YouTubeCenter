@@ -1,12 +1,15 @@
 /**
 * A group module for the element-placment module.
 *
-* @module element-placement/sentiment-actions
+* @namespace element-placement
+* @class SentimentActions
 **/
-define(["element-placement", "utils"], function(placement, utils){
+define(["exports", "element-placement", "utils"], function(exports, placement, utils){
   /**
   * Returns a boolean to indicate whether a HTMLELement has passed the condition.
   *
+  * @private
+  * @static
   * @method condition
   * @param {HTMLElement} elm A HTMLElement to check if it passes the condition.
   * @return {Boolean} Whether the condition is met or not.
@@ -25,6 +28,8 @@ define(["element-placement", "utils"], function(placement, utils){
   /**
   * The id of the group.
   *
+  * @private
+  * @static
   * @type String
   * @readOnly
   **/
@@ -39,11 +44,14 @@ define(["element-placement", "utils"], function(placement, utils){
   /**
   * This is a bound function from element-placement.addElement,
   * with the id param set to sentiment-actions.
+  *
+  * @static
+  * @method addElement
   * @param {HTMLElement} A HTMLElement that will be added to the group.
   **/
   var addElement = utils.bind(null, placement.addElement, id);
   
-  return {
-    addElement: addElement
-  }
+  exports.addElement = addElement;
+  
+  return exports;
 });

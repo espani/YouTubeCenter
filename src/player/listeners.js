@@ -1,11 +1,33 @@
-define(["exports", "utils", "./api", "unsafeWindow", "console", "./onYouTubePlayerReady", "ytready"], function(exports, utils, playerAPI, uw, con, onReady, ytready){
-  // Get the YouTube listener for the passed event.
+/**
+* Handles the player listeners.
+*
+* @namespace player
+* @class Listeners
+**/
+define(["exports", "utils", "./api", "unsafeWindow", "console", "./onYouTubePlayerReady", "ytready", "./listeners/origins", "./listeners/events"],
+function(exports, utils, playerAPI, uw, con, onReady, ytready, Origin, Events){
+  /**
+  * Get the YouTube listener for the passed event.
+  *
+  * @private
+  * @static
+  * @method getYouTubeListener
+  * @param {String} event The event name.
+  * @return {Function} Returns the YouTube listener with the given event name.
+  **/
   function getYouTubeListener(event) {
     var ytEvent = getListenerName(event);
     return ytListeners[ytEvent];
   }
   
-  // The latest player id registered in the global window.
+  /**
+  * The latest player id and player uid registered in the global window.
+  *
+  * @private
+  * @static
+  * @method getPlayerListenerDetails
+  * @return {Object} An object with the `id` property and the `uid` property.
+  **/
   function getPlayerListenerDetails() {
     var id = 1;
     var uid = null;
@@ -34,6 +56,15 @@ define(["exports", "utils", "./api", "unsafeWindow", "console", "./onYouTubePlay
     return { id: id, uid: uid };
   }
   
+  /**
+  * The property name of the event in the global window.
+  *
+  * @private
+  * @static
+  * @method getListenerName
+  * @param {String} event The event name.
+  * @return {String} The property name of the event.
+  **/
   function getListenerName(event) {
     if (playerListenerDetails.uid !== null) {
       return "ytPlayer" + event + "player_uid_" + playerListenerDetails.uid + "_" + playerListenerDetails.id;
@@ -42,18 +73,43 @@ define(["exports", "utils", "./api", "unsafeWindow", "console", "./onYouTubePlay
     }
   }
   
+  /**
+  * The setter function for the event property in the global window.
+  *
+  * @private
+  * @static
+  * @method ytListenerContainerSetter
+  * @param {String} event The event name.
+  * @param {Function} func The event listener.
+  **/
   function ytListenerContainerSetter(event, func) {
     var ytEvent = getListenerName(event);
     ytListeners[ytEvent] = func;
   }
-  function ytListenerContainerGetter(event, func) {
-    return utils.bind(null, callListener, event, ORIGIN_PROPERTY);
+  
+  /**
+  * The getter function for the event property in the global window.
+  *
+  * @private
+  * @static
+  * @method ytListenerContainerGetter
+  * @param {String} event The event name.
+  * @return {Function} The event listener.
+  **/
+  function ytListenerContainerGetter(event) {
+    return utils.bind(null, callListener, event, Origin.PROPERTY);
   }
   
-  /* Origin argument
-   * If origin is equal to 0 then the origin is directly from the player (only YouTube Center's listeners get executed if override is false).
-   * If origin is equal to 1 then the origin is from the global listeners (both YouTube's and YouTube Center's listeners get executed).
-   */
+  /**
+  * Handles the added listeners and YouTube's listeners.
+  *
+  * @private
+  * @static
+  * @method callListener
+  * @param {String} event The event name.
+  * @param {PlayerListenersOrigin} origin The call origin.
+  * @return {any} The return value of the called listeners.
+  **/
   function callListener(event, origin) {
     function generateThisObject() {
       return {
@@ -65,14 +121,14 @@ define(["exports", "utils", "./api", "unsafeWindow", "console", "./onYouTubePlay
     var args = Array.prototype.slice.call(arguments, 2);
     var returnVal = null;
     
-    if (enabled && origin === ORIGIN_PLAYER && (!events.hasOwnProperty(event) || (events.hasOwnProperty(event) && !events[event].override))) {
+    if (enabled && origin === Origin.PLAYER && (!events.hasOwnProperty(event) || (events.hasOwnProperty(event) && !events[event].override))) {
       /* Override is false and the origin is from the player; call the YouTube Center listeners */
       if (events.hasOwnProperty(event)) {
         for (var i = 0, len = events[event].listeners.length; i < len; i++) {
           returnVal = events[event].listeners[i].apply(null, args);
         }
       }
-    } else if (enabled && origin === ORIGIN_PROPERTY) {
+    } else if (enabled && origin === Origin.PROPERTY) {
       if (events.hasOwnProperty(event) && events[event].override) {
         /* Override is true and the origin is from the global window; call the YouTube Center listeners */
         for (var i = 0, len = events[event].listeners.length; i < len; i++) {
@@ -96,6 +152,13 @@ define(["exports", "utils", "./api", "unsafeWindow", "console", "./onYouTubePlay
     return returnVal;
   }
   
+  /**
+  * Adding the listeners to the player.
+  *
+  * @private
+  * @static
+  * @method addPlayerListener
+  **/
   function addPlayerListener() {
     var api = playerAPI.getAPI();
     var event;
@@ -104,7 +167,7 @@ define(["exports", "utils", "./api", "unsafeWindow", "console", "./onYouTubePlay
       apiNotAvailable = false;
       for (event in events) {
         if (events.hasOwnProperty(event)) {
-          playerListener[event] = utils.bind(null, callListener, event, ORIGIN_PLAYER);
+          playerListener[event] = utils.bind(null, callListener, event, Origin.PLAYER);
           api.addEventListener(event, playerListener[event]);
         }
       }
@@ -114,6 +177,13 @@ define(["exports", "utils", "./api", "unsafeWindow", "console", "./onYouTubePlay
     }
   }
   
+  /**
+  * Initializing the global listeners.
+  *
+  * @private
+  * @static
+  * @method initGlobalListeners
+  **/
   function initGlobalListeners() {
     if (globalListenersInitialized) return; // Make sure that this function is only called once.
     globalListenersInitialized = true;
@@ -131,6 +201,12 @@ define(["exports", "utils", "./api", "unsafeWindow", "console", "./onYouTubePlay
     }
   }
   
+  /**
+  * Initializing the player listener wrapper.
+  *
+  * @static
+  * @method init
+  **/
   function init() {
     if (enabled) return;
     var api = playerAPI.getAPI();
@@ -145,13 +221,29 @@ define(["exports", "utils", "./api", "unsafeWindow", "console", "./onYouTubePlay
     initGlobalListeners();
   }
   
+  /**
+  * Adding an event listener.
+  *
+  * @static
+  * @method addEventListener
+  * @param {String} event The event name.
+  * @param {Function} listener The listener.
+  **/
   function addEventListener(event, listener) {
     if (!events.hasOwnProperty(event)) return;
     
     removeEventListener(event, listener); // Make sure that there is only one instance of the listener registered.
     events[event].listeners.push(listener);
   }
-      
+  
+  /**
+  * Removing an event listener.
+  *
+  * @static
+  * @method removeEventListener
+  * @param {String} event The event name.
+  * @param {Function} listener The listener.
+  **/
   function removeEventListener(event, listener) {
     if (!events.hasOwnProperty(event)) return;
     for (var i = 0, len = events[event].listeners.length; i < len; i++) {
@@ -161,11 +253,28 @@ define(["exports", "utils", "./api", "unsafeWindow", "console", "./onYouTubePlay
     }
   }
   
+  /**
+  * Set the event to override the YouTube's event listener
+  * so that they won't be called except if done so manually.
+  *
+  * @static
+  * @method setOverride
+  * @param {String} event The event name.
+  * @param {Boolean} override Whether the event should be set to override.
+  **/
   function setOverride(event, override) {
     if (!events.hasOwnProperty(event)) return;
     events[event].override = !!override;
   }
   
+  /**
+  * Unload the player listeners added to the player
+  * through the player API.
+  *
+  * @private
+  * @static
+  * @method unloadPlayerListeners
+  **/
   function unloadPlayerListeners() {
     var api = playerAPI.getAPI();
     var event;
@@ -182,96 +291,92 @@ define(["exports", "utils", "./api", "unsafeWindow", "console", "./onYouTubePlay
     }
   }
   
+  /**
+  * Unload the player listener wrapper.
+  *
+  * @static
+  * @method unload
+  **/
   function unload() {
     unloadPlayerListeners();
     enabled = false;
     apiNotAvailable = true;
   }
   
-  var ORIGIN_PLAYER = 0;
-  var ORIGIN_PROPERTY = 1;
-  
+  /**
+  * The cached player id and uid.
+  *
+  * @private
+  * @static
+  * @property playerListenerDetails
+  * @type Object
+  **/
   var playerListenerDetails = { id: 1, uid: null };
+  
+  /**
+  * The leaked YouTube listeners.
+  *
+  * @private
+  * @static
+  * @property ytListeners
+  * @type Object
+  **/
   var ytListeners = {};
-  var playerListener = {}; // Reference for unload
+  
+  /**
+  * The cached player listeners.
+  *
+  * @private
+  * @static
+  * @property playerListener
+  * @type Object
+  **/
+  var playerListener = {};
+  
+  /**
+  * If the player listeners handler is enabled.
+  *
+  * @private
+  * @static
+  * @property enabled
+  * @type Boolean
+  **/
   var enabled = false;
+  
+  /**
+  * If the global listeners are initialized.
+  *
+  * @private
+  * @static
+  * @property globalListenersInitialized
+  * @type Boolean
+  **/
   var globalListenersInitialized = false;
+  
+  /**
+  * If the player API is available.
+  *
+  * @private
+  * @static
+  * @property apiNotAvailable
+  * @type Boolean
+  **/
   var apiNotAvailable = true;
   
-  var events = {
-    "onApiChange": {
-      override: false,
-      listeners: []
-    },
-    "onCueRangeEnter": {
-      override: false,
-      listeners: []
-    },
-    "onCueRangeExit": {
-      override: false,
-      listeners: []
-    },
-    "onError": {
-      override: false,
-      listeners: []
-    },
-    "onNavigate": {
-      override: false,
-      listeners: []
-    },
-    "onPlaybackQualityChange": {
-      override: false,
-      listeners: []
-    },
-    "onStateChange": {
-      override: false,
-      listeners: []
-    },
-    "onTabOrderChange": {
-      override: false,
-      listeners: []
-    },
-    "onVolumeChange": {
-      override: false,
-      listeners: []
-    },
-    "onAdStart": {
-      override: false,
-      listeners: []
-    },
-    "onReady": {
-      override: false,
-      listeners: []
-    },
-    "RATE_SENTIMENT": {
-      override: false,
-      listeners: []
-    },
-    "SHARE_CLICKED": {
-      override: false,
-      listeners: []
-    },
-    "SIZE_CLICKED": {
-      override: false,
-      listeners: []
-    },
-    "WATCH_LATER": {
-      override: false,
-      listeners: []
-    },
-    "AdvertiserVideoView": {
-      override: false,
-      listeners: []
-    },
-    "captionschanged": {
-      override: false,
-      listeners: []
-    },
-    "onRemoteReceiverSelected": {
-      override: false,
-      listeners: []
+  /**
+  * The event listeners and options.
+  *
+  * @private
+  * @static
+  * @property events
+  * @type Object
+  **/
+  var events = {};
+  for (var event in Events) {
+    if (Event.hasOwnProperty(event)) {
+      events[event] = { override: false, listeners: [] };
     }
-  };
+  }
   
   // Intialize the player listeners at player on ready.
   onReady.addListener(init);

@@ -1,3 +1,9 @@
+/**
+* The YouTube player.
+*
+* @namespace player
+* @class Player
+**/
 define(["exports", "player/api", "player/config", "unsafeWindow", "player/size"], function(exports, playerAPI, playerConfig, uw, size){
   /**
   * Get the current player type, which can either be HTML5 or flash.
@@ -84,10 +90,27 @@ define(["exports", "player/api", "player/config", "unsafeWindow", "player/size"]
     }
   }
   
+  /**
+  * An object that contains the player's API.
+  *
+  * @property api
+  * @type Object
+  * @readOnly
+  **/
+  utils.defineProperty(exports, "api", playerAPI.getAPI, function(){});
+  
+  /**
+  * Get the player API.
+  *
+  * @method getAPI
+  * @return {Object} The player api.
+  * @deprecated Use `player.api` instead.
+  **/
+  exports.getAPI = playerAPI.getAPI;
+  
   exports.getType = getType;
   exports.setType = setType;
   exports.getControlbarHeight = getControlbarHeight;
-  exports.getAPI = playerAPI.getAPI;
   exports.getConfig = playerConfig.getConfig;
   exports.setConfig = playerConfig.setConfig;
   exports.reload = reload;
