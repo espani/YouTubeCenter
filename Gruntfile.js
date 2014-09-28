@@ -6,6 +6,7 @@ module.exports = function(grunt) {
   
   /* Libraries */
   grunt.loadNpmTasks("grunt-contrib-requirejs");
+  grunt.loadNpmTasks("grunt-contrib-cssmin");
   grunt.loadNpmTasks("grunt-contrib-uglify");
   grunt.loadNpmTasks("grunt-contrib-concat");
   grunt.loadNpmTasks("grunt-contrib-copy");
@@ -46,6 +47,15 @@ module.exports = function(grunt) {
           generateSourceMaps: true,
           useSourceUrl: true
         }
+      }
+    },
+    cssmin: {
+      base: {
+        expand: true,
+        cwd: "css/",
+        src: ["**/*.css"],
+        dest: "build/css",
+        ext: ".css"
       }
     },
     uglify: {
@@ -174,6 +184,20 @@ module.exports = function(grunt) {
     }
   });
   
+  grunt.registerTask("loadCSS", "Loads the css files into memory", function() {
+    var obj = {};
+    grunt.file.recurse("./build/css/", function(abspath, rootdir, subdir, filename){
+      var file = filename.substring(0, filename.lastIndexOf("."));
+      var path = file;
+      if (subdir) {
+        path = subdir + "/" + path;
+      }
+      obj[path] = grunt.file.read(abspath);
+    });
+    
+    appConfig["css-object"] = JSON.stringify(obj);
+  });
+  
   grunt.registerTask("wrapInFunction", "Wraps file into a function.", function() {
     var inPath = "./build/main-all.js";
     var outPath = "./build/main-all.js";
@@ -243,6 +267,8 @@ module.exports = function(grunt) {
     "loadLanguageFile",
     "setupConfig:page",
     "copy:all",
+    "cssmin:base",
+    "loadCSS",
     "replace:config",
     "requirejs:page"
   ]);

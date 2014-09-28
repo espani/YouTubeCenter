@@ -1,5 +1,6 @@
-define(["exports", "unsafeWindow", "./api", "./config", "utils", "unsafeYouTubeCenter", "console"], function(exports, uw, playerAPI, config, utils, uytc, con){
+define(["exports", "unsafeWindow", "./api", "./config", "utils", "unsafeYouTubeCenter", "../console"], function(exports, uw, playerAPI, config, utils, uytc, con){
   function onPlayerReady(api) {
+    con.debug("Player is ready");
     playerAPI.setAPI(api);
     
     if (typeof api === "object") {
@@ -22,11 +23,30 @@ define(["exports", "unsafeWindow", "./api", "./config", "utils", "unsafeYouTubeC
     }
   }
   
+  function onDelayed() {
+    con.debug("Using delayed method");
+    var api = playerAPI.getAPI();
+    if (api && typeof api.getPlayerState === "function") {
+      try {
+        api.getPlayerState();
+      } catch (e) {
+        setTimeout(onDelayed, 500);
+        return;
+      }
+      onPlayerReady(api);
+    }
+  }
+  
   var listeners = [];
   
   config.setPersistentConfig("args.jsapicallback", "ytcenter.player.onReady");
   uytc.player.onReady = utils.bind(this, onPlayerReady);
   uw.onYouTubePlayerReady = onPlayerReady;
+  
+  var cfg = config.getConfig();
+  if (cfg.loaded) {
+    onDelayed();
+  }
   
   exports.addListener = addListener;
   exports.removeListener = removeListener;

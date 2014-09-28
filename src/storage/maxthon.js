@@ -1,4 +1,4 @@
-define(["storage/browser.js", "utils", "con", "support"], function(browser, utils, con, support){
+define(["storage/browser.js", "utils", "con", "../helper/support"], function(browser, utils, con, support){
   function removeItem(key) {
     con.warn("Maxthon does not support removeItem! Using setItem with no value.");
     storage.setConfig(key, "");

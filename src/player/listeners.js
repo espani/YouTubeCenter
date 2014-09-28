@@ -1,10 +1,10 @@
 /**
 * Handles the player listeners.
 *
-* @namespace player
+* @namespace Player
 * @class Listeners
 **/
-define(["exports", "utils", "./api", "unsafeWindow", "console", "./onYouTubePlayerReady", "ytready", "./listeners/origins", "./listeners/events"],
+define(["exports", "../utils", "./api", "../unsafeWindow", "../console", "./onYouTubePlayerReady", "../ytready", "./listeners/origins", "./listeners/events"],
 function(exports, utils, playerAPI, uw, con, onReady, ytready, Origin, Events){
   /**
   * Get the YouTube listener for the passed event.
@@ -121,6 +121,8 @@ function(exports, utils, playerAPI, uw, con, onReady, ytready, Origin, Events){
     var args = Array.prototype.slice.call(arguments, 2);
     var returnVal = null;
     
+    con.debug("Listener " + event + " called from [" + origin + "]", args);
+    
     if (enabled && origin === Origin.PLAYER && (!events.hasOwnProperty(event) || (events.hasOwnProperty(event) && !events[event].override))) {
       /* Override is false and the origin is from the player; call the YouTube Center listeners */
       if (events.hasOwnProperty(event)) {
@@ -209,6 +211,9 @@ function(exports, utils, playerAPI, uw, con, onReady, ytready, Origin, Events){
   **/
   function init() {
     if (enabled) return;
+    
+    con.debug("Init player listener");
+    
     var api = playerAPI.getAPI();
     playerListenerDetails = getPlayerListenerDetails();
     
@@ -373,7 +378,7 @@ function(exports, utils, playerAPI, uw, con, onReady, ytready, Origin, Events){
   **/
   var events = {};
   for (var event in Events) {
-    if (Event.hasOwnProperty(event)) {
+    if (Events.hasOwnProperty(event)) {
       events[event] = { override: false, listeners: [] };
     }
   }

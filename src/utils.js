@@ -1,4 +1,7 @@
-define(["support", "unsafeWindow"], function(support, uw){
+/**
+* @class Utils
+**/
+define(["exports", "./helper/support", "unsafeWindow"], function(exports, support, uw){
   function each(obj, callback) {
     if (isArray(obj)) {
       for (var i = 0; i < obj.length; i++) {
@@ -27,12 +30,15 @@ define(["support", "unsafeWindow"], function(support, uw){
       return func.apply(scope, args.concat(Array.prototype.slice.call(arguments)))
     };
   }
+  
   function trimLeft(obj){
     return obj.replace(/^\s+/, "");
   }
+  
   function trimRight(obj){
     return obj.replace(/\s+$/, "");
   }
+  
   function map(obj, callback, thisArg) {
     for (var i = 0, n = obj.length, a = []; i < n; i++) {
       if (i in obj) a[i] = callback.call(thisArg, obj[i]);
@@ -63,7 +69,7 @@ define(["support", "unsafeWindow"], function(support, uw){
   
   function defineLockedProperty(obj, key, setter, getter) {
     if (typeof obj !== "object") obj = {};
-    if (ie || typeof Object.defineProperty === "function") {
+    if (support.ie || typeof Object.defineProperty === "function") {
       Object.defineProperty(obj, key, {
         get: getter,
         set: setter
@@ -91,11 +97,6 @@ define(["support", "unsafeWindow"], function(support, uw){
       elm.detachEvent("on" + event, callback);
     }
   }
-  
-  var ie = (function(){
-    for (var v = 3, el = document.createElement('b'), all = el.all || []; el.innerHTML = '<!--[if gt IE ' + (++v) + ']><i><![endif]-->', all[0];);
-    return v > 4 ? v : !!document.documentMode;
-  }());
   
   var now = Date.now || function () {
     return +new Date;
@@ -473,47 +474,104 @@ define(["support", "unsafeWindow"], function(support, uw){
     target[tokens[tokens.length - 1]] = value;
   }
   
-  return {
-    hasClass: hasClass,
-    removeClass: removeClass,
-    addClass: addClass,
-    each: each,
-    isArray: isArray,
-    inArray: inArray,
-    bind: bind,
-    asyncCall: asyncCall,
-    defineLockedProperty: defineLockedProperty,
-    ie: ie,
-    addEventListener: addEventListener,
-    removeEventListener: removeEventListener,
-    now: now,
-    trimLeft: trimLeft,
-    trimRight: trimRight,
-    map: map,
-    setCookie: setCookie,
-    getCookie: getCookie,
-    getCookies: getCookies,
-    endsWith: endsWith,
-    inject: inject,
-    isJSONString: isJSONString,
-    xhr: xhr,
-    buildArgumentList: buildArgumentList,
-    bindFunctionCallbacks: bindFunctionCallbacks,
-    extend: extend,
-    throttle: throttle,
-    clone: clone,
-    removeDuplicates: removeDuplicates,
-    escapeRegExp: escapeRegExp,
-    toBlob: toBlob,
-    createObjectURL: createObjectURL,
-    revokeObjectURL: revokeObjectURL,
-    getRandomArbitrary: getRandomArbitrary,
-    getRandomInt: getRandomInt,
-    generateToken: generateToken,
-    escapeECMAVariable: escapeECMAVariable,
-    indexOfArray: indexOfArray,
-    getKeys: getKeys,
-    setProperty: setProperty,
-    defineProperty: defineProperty
-  };
+  /**
+  * Replaces each format item in a specified string with the text equivalent of a corresponding object's value.
+  *
+  * @static
+  * @method format
+  * @param {String} format A composite format string that includes one or more format items.
+  * @param {any} [args]* The object to format.
+  * @return {String} The string with each format item inserted.
+  **/
+  /**
+  * Replaces each token in a specified string with the text equivalent of a corresponding key's value.
+  *
+  * @static
+  * @method format
+  * @param {String} format A composite format string that includes one or more token items.
+  * @param {Object} map The key, value pairs that will be replacing the tokens.
+  * @return {String} The formatted string.
+  **/
+  function format(format) {
+    if (arguments.length === 2 && typeof arguments[1] === "object") {
+      var map = arguments[1];
+      return format.replace(/\${([\w\-\_]+)}/g, function(match, key) { 
+        return typeof map[key] !== "undefined" ? map[key] : match;
+      });
+    } else {
+      var args = Array.prototype.slice.call(arguments, 1);
+      return format.replace(/{(\d+)}/g, function(match, index) { 
+        return typeof args[index] !== "undefined" ? args[index] : match;
+      });
+    }
+  }
+  
+  /**
+  * Calculate the absolute position of an element.
+  *
+  * @static
+  * @method getAbsolutePosition
+  * @param {HTMLElement} el The element.
+  * @return {Object} An object with the properties left and top
+  *                  where top and left tell the position of the
+  *                  element from the top-left corner in pixels.
+  **/
+  function getAbsolutePosition(el) {
+    var left = el.offsetLeft || 0;
+    var top = el.offsetTop || 0;
+    
+    if (el.offsetParent) {
+      var parentAbsolutePosition = getAbsolutePosition(el.offsetParent);
+      left += parentAbsolutePosition.left;
+      top += parentAbsolutePosition.top;
+    }
+    
+    return { left: left, top: top }; 
+  }
+  
+  // Expose functions
+  exports.getAbsolutePosition = getAbsolutePosition;
+  exports.format = format;
+  exports.hasClass = hasClass;
+  exports.removeClass = removeClass;
+  exports.addClass = addClass;
+  exports.each = each;
+  exports.isArray = isArray;
+  exports.inArray = inArray;
+  exports.bind = bind;
+  exports.asyncCall = asyncCall;
+  exports.defineLockedProperty = defineLockedProperty;
+  exports.addEventListener = addEventListener;
+  exports.removeEventListener = removeEventListener;
+  exports.now = now;
+  exports.trimLeft = trimLeft;
+  exports.trimRight = trimRight;
+  exports.map = map;
+  exports.setCookie = setCookie;
+  exports.getCookie = getCookie;
+  exports.getCookies = getCookies;
+  exports.endsWith = endsWith;
+  exports.inject = inject;
+  exports.isJSONString = isJSONString;
+  exports.xhr = xhr;
+  exports.buildArgumentList = buildArgumentList;
+  exports.bindFunctionCallbacks = bindFunctionCallbacks;
+  exports.extend = extend;
+  exports.throttle = throttle;
+  exports.clone = clone;
+  exports.removeDuplicates = removeDuplicates;
+  exports.escapeRegExp = escapeRegExp;
+  exports.toBlob = toBlob;
+  exports.createObjectURL = createObjectURL;
+  exports.revokeObjectURL = revokeObjectURL;
+  exports.getRandomArbitrary = getRandomArbitrary;
+  exports.getRandomInt = getRandomInt;
+  exports.generateToken = generateToken;
+  exports.escapeECMAVariable = escapeECMAVariable;
+  exports.indexOfArray = indexOfArray;
+  exports.getKeys = getKeys;
+  exports.setProperty = setProperty;
+  exports.defineProperty = defineProperty;
+  
+  return exports;
 });

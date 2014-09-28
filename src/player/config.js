@@ -1,7 +1,8 @@
 /**
 * Handles the player configuration.
 *
-* @class PlayerConfig
+* @namespace Player
+* @class Config
 **/
 define(["exports", "utils", "unsafeWindow", "console"], function(exports, utils, uw, con){
   /**

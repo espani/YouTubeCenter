@@ -1,4 +1,4 @@
-define(["storage/browser.js", "support", "utils"], function(browser, support, utils){
+define(["storage/browser.js", "../helper/support", "utils"], function(browser, support, utils){
   function setItem(key, value) {
     port.storage.setItem(key);
   }

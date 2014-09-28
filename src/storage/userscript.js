@@ -1,4 +1,4 @@
-define(["support", "storage/browser", "utils"], function(support, browser, utils){
+define(["../helper/support", "./browser", "../utils"], function(support, browser, utils){
   function setItem(key, value) {
     GM_setValue(key, value);
   }

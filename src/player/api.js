@@ -1,8 +1,8 @@
 /**
 * The player API
 *
-* @namespace player
-* @class PlayerAPI
+* @namespace Player
+* @class API
 **/
 define(["exports", "utils"], function(exports, utils){
   /**

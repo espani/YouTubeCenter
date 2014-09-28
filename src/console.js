@@ -1,4 +1,4 @@
-define(["utils"], function(utils){
+define(["exports", "utils"], function(exports, utils){
   function setEnabled(b) {
     enabled = b;
   }
@@ -18,17 +18,21 @@ define(["utils"], function(utils){
     return console.warn.bind(console, "${runtime.browser.name}[" + sessionToken + "]");
   }
   
+  function debug() {
+    if (!enabled) return function(){};
+    return console.debug.bind(console, "${runtime.browser.name}[" + sessionToken + "]");
+  }
+  
   var sessionToken = (typeof consoleSessionToken === "string" ? consoleSessionToken : utils.generateToken(null, 8));
   
   var enabled = true;
   
-  var con = {};
+  exports.sessionToken = sessionToken;
   
-  con.sessionToken = sessionToken;
+  utils.defineLockedProperty(exports, "log", function(){}, log);
+  utils.defineLockedProperty(exports, "error", function(){}, error);
+  utils.defineLockedProperty(exports, "warn", function(){}, warn);
+  utils.defineLockedProperty(exports, "debug", function(){}, debug);
   
-  utils.defineLockedProperty(con, "log", function(){}, log);
-  utils.defineLockedProperty(con, "error", function(){}, error);
-  utils.defineLockedProperty(con, "warn", function(){}, warn);
-  
-  return con;
+  return exports;
 });

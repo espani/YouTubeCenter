@@ -1,4 +1,4 @@
-define(["support", "storage/localStorage", "storage/cookies", "console"], function(support, localStorage, cookies){
+define(["../helper/support", "./localStorage", "./cookies", "console"], function(support, localStorage, cookies){
   if (support.localStorage) {
     return localStorage;
   } else {
